@@ -187,7 +187,9 @@
                     "include": "src/config/default/*{.c,.h}",
                     "encoding": "ISO-8859-1"
                 },
-                "src/main.c"
+                "src/main.c",
+                "src/driver/flash_eeprom.c",
+                "src/driver/flash_eeprom.h"
             ]
         }
     ]
