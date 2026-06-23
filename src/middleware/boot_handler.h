@@ -1,9 +1,32 @@
 #ifndef _BOOT_HANDLER_NAME_H 
 #define _BOOT_HANDLER_NAME_H
 
+#include <stdbool.h>
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/* =====================================================
+ * FLASH MEMORY MAP
+ * =====================================================
+ *
+ * PIC32AK6416GC41064 program flash:
+ *   0x800000 - 0x80FFFF
+ *
+ * Bootloader is kept at the reset/start of flash. The application project
+ * must be linked to APPLICATION_START_ADDRESS so the bootloader can jump to it.
+ */
+#define BOOTLOADER_START_ADDRESS        (0x800000UL)
+#define BOOTLOADER_SIZE_BYTES           (0x4000UL)      /* 16 KB reserved */
+#define BOOTLOADER_END_ADDRESS          (0x803FFFUL)
+
+#define APPLICATION_START_ADDRESS       (0x804000UL)
+#define APPLICATION_END_ADDRESS         (0x80FBFFUL)
+
+#define APP_METADATA_START_ADDRESS      (0x80FC00UL)    /* Last 1 KB page */
+#define APP_METADATA_END_ADDRESS        (0x80FFFFUL)
 
 /* =====================================================
  * CAN IDs REQUEST (SCU → MCU)
@@ -49,6 +72,10 @@ typedef enum {
   CMD_RESP_FLASH_READY =                      0x2E      // Flash memory erased and ready to receive data
 } CMD_RESP_t;
 
+
+void Run_Boot_Handler(void);
+void App_Jump(void);
+bool Boot_IsApplicationPresent(void);
 
 
 #ifdef __cplusplus

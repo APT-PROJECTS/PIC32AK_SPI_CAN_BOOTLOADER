@@ -4,11 +4,12 @@
     "configurations": [
         {
             "name": "default",
-            "id": "conf1",
+            "id": "",
             "device": "PIC32AK6416GC41064",
             "imageType": "application",
             "imagePath": "./out/PIC32AK64_SPI_CAN_BOOTLOADER/default.elf",
-            "tool": "pickitbasic",
+            "toolProperties": "default-tool-base",
+            "tool": "PICkit Basic",
             "packs": [
                 {
                     "name": "PIC32AK-GC_DFP",
@@ -145,6 +146,17 @@
                 "global.save-temps": false,
                 "global.wpo-lto": false
             }
+        },
+        {
+            "name": "default-tool-base",
+            "type": "tool",
+            "properties": {
+                "AutoSelectMemRanges": "auto",
+                "memories.programmemory": true,
+                "memories.programmemory.ranges": "800000-80ffff",
+                "programoptions.preserveprogramrange": true,
+                "programoptions.preserveprogram.ranges": "804000-80ffff"
+            }
         }
     ],
     "fileSets": [
@@ -188,6 +200,8 @@
                     "encoding": "ISO-8859-1"
                 },
                 "src/main.c",
+                "src/middleware/boot_handler.c",
+                "src/middleware/boot_handler.h",
                 "src/driver/flash_eeprom.c",
                 "src/driver/flash_eeprom.h"
             ]

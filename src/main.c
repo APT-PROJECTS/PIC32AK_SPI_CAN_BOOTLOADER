@@ -10,9 +10,11 @@ int main ( void )
     /* Initialize all modules */
     SYS_Initialize ( NULL );
 
+    Run_Boot_Handler();
+
     while ( true )
     {
-        // Run_Boot_Handler();
+        RED_LED_Set();
     }
 
     return ( EXIT_FAILURE );
