@@ -29,6 +29,16 @@ extern "C" {
 #define APP_METADATA_END_ADDRESS        (0x80FFFFUL)
 
 /* =====================================================
+ * BOOT HANDLER STATES
+ * ===================================================== */
+typedef enum
+{
+    BOOT_STATE_INIT = 0,
+    BOOT_STATE_FIRMWARE_UPGRADE,
+    BOOT_STATE_APP_JMP
+} BOOT_STATE;
+
+/* =====================================================
  * CAN IDs REQUEST (SCU → MCU)
  * ===================================================== */
 typedef enum {

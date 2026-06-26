@@ -1,4 +1,5 @@
 #include "boot_handler.h"
+#include "peripheral/gpio/plib_gpio.h"
 
 typedef void (*APP_ENTRY_FUNC)(void);
 
@@ -45,10 +46,43 @@ void App_Jump(void)
 
 void Run_Boot_Handler(void)
 {
-    App_Jump();
+    static int ctr = 0;
+    static BOOT_STATE bootState = BOOT_STATE_INIT;
 
-    while (true)
+    switch (bootState)
     {
-        /* Stay in bootloader if application flash is empty or invalid. */
+        case BOOT_STATE_INIT:
+        {
+            bootState = BOOT_STATE_FIRMWARE_UPGRADE;
+            break;
+        }
+
+        case BOOT_STATE_FIRMWARE_UPGRADE:
+        {
+            RED_LED_Set();
+            if(ctr < 2000000)
+            {
+                ctr++;
+            }
+            else
+            {
+                ctr = 0;
+                RED_LED_Clear();
+                bootState = BOOT_STATE_APP_JMP;
+            }
+            break;
+        }
+
+        case BOOT_STATE_APP_JMP:
+        {
+            App_Jump();
+            break;
+        }
+
+        default:
+        {
+            bootState = BOOT_STATE_INIT;
+            break;
+        }
     }
 }
