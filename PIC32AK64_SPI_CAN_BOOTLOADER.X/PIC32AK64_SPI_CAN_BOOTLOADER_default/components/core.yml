@@ -338,6 +338,7 @@ data:
     getExtInterruptEdgePolarity:
       attributes:
         id: getExtInterruptEdgePolarity
+        label: getExtInterruptEdgePolarity
       children:
       - children:
         - attributes:
@@ -349,6 +350,7 @@ data:
     getInterruptPriorityData:
       attributes:
         id: getInterruptPriorityData
+        label: getInterruptPriorityData
       children:
       - children:
         - attributes:
@@ -1148,6 +1150,39 @@ data:
       - children:
         - attributes:
             value: ''
+          type: User
+        type: Values
+      type: String
+    INTC_105_ENABLE:
+      attributes:
+        id: INTC_105_ENABLE
+        label: Enable SENT1 RX and TX Interrupt
+      type: Boolean
+    INTC_105_HANDLER_LOCK:
+      attributes:
+        id: INTC_105_HANDLER_LOCK
+        label: INTC_105_HANDLER_LOCK
+      type: Boolean
+    SYS_PORT_C_LAT:
+      attributes:
+        id: SYS_PORT_C_LAT
+        label: LATC Value
+      children:
+      - children:
+        - attributes:
+            id: core
+            value: '256'
+          type: Dynamic
+        type: Values
+      type: Hex
+    BSP_PIN_33_LAT:
+      attributes:
+        id: BSP_PIN_33_LAT
+        label: Initial Latch Value
+      children:
+      - children:
+        - attributes:
+            value: High
           type: User
         type: Values
       type: String

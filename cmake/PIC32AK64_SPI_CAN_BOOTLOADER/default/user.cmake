@@ -4,8 +4,17 @@
 # This file is included by the generated CMakeLists.txt after .generated/main.cmake,
 # so it survives regeneration of the generated files.
 
-set(_boot_handler_source "${CMAKE_CURRENT_LIST_DIR}/../../../src/middleware/boot_handler.c")
-set_source_files_properties("${_boot_handler_source}" PROPERTIES LANGUAGE C)
+set(_extra_project_sources
+    "${CMAKE_CURRENT_LIST_DIR}/../../../src/driver/device_stat.c"
+    "${CMAKE_CURRENT_LIST_DIR}/../../../src/driver/driver_CANbus.c"
+    "${CMAKE_CURRENT_LIST_DIR}/../../../src/driver/driver_mcp2515.c"
+    "${CMAKE_CURRENT_LIST_DIR}/../../../src/driver/mcu_config.c"
+    "${CMAKE_CURRENT_LIST_DIR}/../../../src/software/state_engine.c"
+)
+
+foreach(_source IN LISTS _extra_project_sources)
+    set_source_files_properties("${_source}" PROPERTIES LANGUAGE C)
+endforeach()
 
 get_target_property(
     _generated_compile_sources
@@ -13,17 +22,17 @@ get_target_property(
     SOURCES
 )
 
-list(FIND _generated_compile_sources "${_boot_handler_source}" _boot_handler_index)
+set(_user_object_lib PIC32AK64_SPI_CAN_BOOTLOADER_user_sources)
 
-if(_boot_handler_index EQUAL -1)
-    add_library(PIC32AK64_SPI_CAN_BOOTLOADER_user_boot_handler OBJECT "${_boot_handler_source}")
-    PIC32AK64_SPI_CAN_BOOTLOADER_default_default_XC32_pic32a_compile_rule(PIC32AK64_SPI_CAN_BOOTLOADER_user_boot_handler)
-
-    get_property(_generated_targets DIRECTORY PROPERTY BUILDSYSTEM_TARGETS)
-
-    foreach(_target IN LISTS _generated_targets)
-        if(_target MATCHES "^PIC32AK64_SPI_CAN_BOOTLOADER_default_image_")
-            target_sources(${_target} PRIVATE $<TARGET_OBJECTS:PIC32AK64_SPI_CAN_BOOTLOADER_user_boot_handler>)
-        endif()
-    endforeach()
+if(NOT TARGET ${_user_object_lib})
+    add_library(${_user_object_lib} OBJECT ${_extra_project_sources})
+    PIC32AK64_SPI_CAN_BOOTLOADER_default_default_XC32_pic32a_compile_rule(${_user_object_lib})
 endif()
+
+get_property(_generated_targets DIRECTORY PROPERTY BUILDSYSTEM_TARGETS)
+
+foreach(_target IN LISTS _generated_targets)
+    if(_target MATCHES "^PIC32AK64_SPI_CAN_BOOTLOADER_default_image_")
+        target_sources(${_target} PRIVATE $<TARGET_OBJECTS:${_user_object_lib}>)
+    endif()
+endforeach()

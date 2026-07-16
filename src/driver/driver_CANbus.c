@@ -1,0 +1,44 @@
+#include "device.h"
+#include "definitions.h"
+#include "driver_CANbus.h"
+#include "driver_mcp2515.h"
+#include "../middleware/boot_handler.h"
+
+void CANbus_write(uint32_t Sadr, uint8_t *Sdata, uint8_t Sdata_L) {
+    bool sstat;
+    bool idType;
+
+    /* Standard CAN ID (11-bit) */
+    if (Sadr <= 0x7FFU) {
+        idType = false;
+    }        /* Extended CAN ID (29-bit) */
+    else {
+        idType = true;
+    }
+
+    sstat = MCP2515_SendMessage(Sadr, idType, Sdata_L, Sdata);
+
+    (void) sstat; // Suppress unused variable warning
+}
+
+void CANbus_read(void) {
+    uint8_t Rdata[8];
+    bool rstat = 0;
+    uint8_t msg_len = 0;
+    uint32_t msg_id = 0;
+    bool idType;
+
+    rstat = MCP2515_ReceiveMessage(&msg_id, &idType, &msg_len, &Rdata[0]);
+
+    if (rstat) {
+        rstat = 0;
+        
+        // For OTA Bootloader Updates
+        if (msg_id == CANID_REQ_PICID_1 || 
+                msg_id == CANID_REQ_PICID_2 ||
+                msg_id == CANID_REQ_SOFTWARE_ID || 
+                msg_id == CANID_SCU_REQ) {
+            Run_Boot_Handler(msg_id, Rdata[0]);
+        }
+    }
+}

@@ -6,40 +6,25 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif
-
+#endif    
+    
 /* =====================================================
  * FLASH MEMORY MAP
- * =====================================================
- *
- * PIC32AK6416GC41064 program flash:
- *   0x800000 - 0x80FFFF
- *
- * Bootloader is kept at the reset/start of flash. The application project
- * must be linked to APPLICATION_START_ADDRESS so the bootloader can jump to it.
- */
+ * =====================================================*/
 #define BOOTLOADER_START_ADDRESS        (0x800000UL)
-#define BOOTLOADER_SIZE_BYTES           (0x4000UL)      /* 16 KB reserved */
-#define BOOTLOADER_END_ADDRESS          (0x803FFFUL)
+#define BOOTLOADER_END_ADDRESS          (0x807FFFUL)
+    
+#define APPLICATION_START_ADDRESS       (0x808000UL)
+#define APPLICATION_END_ADDRESS         (0x80EFFFUL)
 
-#define APPLICATION_START_ADDRESS       (0x804000UL)
-#define APPLICATION_END_ADDRESS         (0x80FBFFUL)
+#define EEPROM_START_ADDRESS            (0x80F000UL)
+#define EEPROM_END_ADDRESS              (0x80FFFFUL)
+    
+//--ivt=0x807040
 
-#define APP_METADATA_START_ADDRESS      (0x80FC00UL)    /* Last 1 KB page */
-#define APP_METADATA_END_ADDRESS        (0x80FFFFUL)
-
-/* =====================================================
- * BOOT HANDLER STATES
- * ===================================================== */
-typedef enum
-{
-    BOOT_STATE_INIT = 0,
-    BOOT_STATE_FIRMWARE_UPGRADE,
-    BOOT_STATE_APP_JMP
-} BOOT_STATE;
 
 /* =====================================================
- * CAN IDs REQUEST (SCU → MCU)
+ * CAN IDs REQUEST (SCU ? MCU)
  * ===================================================== */
 typedef enum {
   CANID_REQ_PICID_1 =                         0xB0,     // Request PICID UDID0 UDID1
@@ -50,7 +35,7 @@ typedef enum {
 } CANID_REQ_t;
 
 /* =====================================================
- * CAN IDs REQUEST (MCU → SCU)
+ * CAN IDs RESPONSE (MCU ? SCU)
  * ===================================================== */
 typedef enum {
   CANID_RESP_PICID_1 =                        0xB1,   // Response PICID UDID0 UDID1
@@ -61,7 +46,7 @@ typedef enum {
 } CANID_RESP_t;
 
 /* =====================================================
- * COMMANDS REQUEST (SCU → MCU)
+ * COMMANDS REQUEST (SCU ? MCU)
  * ===================================================== */
 typedef enum {
   CMD_REQ_STATUS =                            0x54,       // Request MCU status
@@ -72,7 +57,7 @@ typedef enum {
 } CMD_REQ_t;
 
 /* =====================================================
- * COMMAND RESPONSE (MCU → SCU)
+ * COMMAND RESPONSE (MCU ? SCU)
  * ===================================================== */
 typedef enum {
   CMD_RESP_BOOTLOADER_MODE =                  0x58,     // MCU in bootloader mode
@@ -82,10 +67,19 @@ typedef enum {
   CMD_RESP_FLASH_READY =                      0x2E      // Flash memory erased and ready to receive data
 } CMD_RESP_t;
 
-
-void Run_Boot_Handler(void);
+/* =====================================================
+ * API
+ * ===================================================== */
+void Send_PICID_1(void);
+void Send_PICID_2(void);
+void Send_Software_ID(void);
+void Boot_Status(void);
+bool App_Erase(void);
+bool App_Erase_Verify(void);
+void App_Erase_Success(void);
+bool Is_App_Present(void);
 void App_Jump(void);
-bool Boot_IsApplicationPresent(void);
+void Run_Boot_Handler(uint32_t ID, uint8_t rxBuffer);
 
 
 #ifdef __cplusplus

@@ -1,5 +1,5 @@
-#include "driver_mcp2515.h"
 #include "definitions.h"
+#include "driver_mcp2515.h"
 
 /* MCP2515 Commands */
 #define MCP2515_RESET_CMD        0xC0
