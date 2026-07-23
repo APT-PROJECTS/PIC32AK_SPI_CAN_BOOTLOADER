@@ -28,6 +28,7 @@ void EEPROM_Initialize(void) {
 
 void Load_Read_Matrix(void) {
     uint32_t temp32;
+    static int ctr = 0;
 
     __builtin_memset(eepromBuffer, 0, EEPROM_DATA_SIZE);
 
@@ -86,6 +87,7 @@ void Load_Read_Matrix(void) {
         FLASH_EEPROM_Write_Page(eepromBuffer, sizeof (writeMatrix));
     }
     else{
+        for(ctr = 0; ctr <= 200000000; ctr++);
         App_Jump();
     }
 }

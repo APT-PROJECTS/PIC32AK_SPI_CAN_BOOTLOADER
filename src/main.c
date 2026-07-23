@@ -14,6 +14,8 @@ int main ( void )
     
     SYS_Initialize ( NULL );
     
+    RED_LED_Set();
+    
     EEPROM_Initialize();
     
     for(attempt = 0U; attempt < MCP2515_STARTUP_ATTEMPTS; attempt++)
@@ -27,7 +29,6 @@ int main ( void )
 
     while ( true )
     {
-        RED_LED_Set();
         STATE_ENGINE_Tasks();
     }
 

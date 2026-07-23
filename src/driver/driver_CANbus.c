@@ -36,9 +36,10 @@ void CANbus_read(void) {
         // For OTA Bootloader Updates
         if (msg_id == CANID_REQ_PICID_1 || 
                 msg_id == CANID_REQ_PICID_2 ||
-                msg_id == CANID_REQ_SOFTWARE_ID || 
-                msg_id == CANID_SCU_REQ) {
-            Run_Boot_Handler(msg_id, Rdata[0]);
+                msg_id == CANID_REQ_SOFTWARE_ID ||
+                msg_id == CANID_SCU_REQ ||
+                msg_id == CANID_REQ_END) {
+            Run_Boot_Handler(msg_id, Rdata);
         }
     }
 }

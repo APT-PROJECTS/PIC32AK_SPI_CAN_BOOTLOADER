@@ -1,115 +1,148 @@
+#include <string.h>
 #include "definitions.h"
 #include "boot_handler.h"
 #include "../driver/driver_CANbus.h"
 #include "../driver/device_stat.h"
 
+#define FLASH_CHUNK_SIZE    4096U
+#define FLASH_ROW_SIZE      128U      // PIC32AK NVM row size in bytes
+#define CAN_DATA_SIZE       7U
+
+static uint8_t flashBuffer[FLASH_CHUNK_SIZE];
+static uint32_t flashBufferIndex = 0;
+static uint32_t flashWriteAddress = APPLICATION_START_ADDRESS;
+
+static uint8_t CHUNK_ACK_DATA[8] =
+{
+    0x88, 0x77, 0x66, 0xFF,
+    0x11, 0x22, 0x44, 0x33
+};
+
 typedef void (*APP_ENTRY_FUNC)(void);
 
-void Send_PICID_1(void) {
+void Send_PICID_1(void)
+{
     uint8_t txBuf[8];
 
     /* UDID0 */
-    txBuf[0] = (uint8_t) (udid[0] >> 24);
-    txBuf[1] = (uint8_t) (udid[0] >> 16);
-    txBuf[2] = (uint8_t) (udid[0] >> 8);
-    txBuf[3] = (uint8_t) (udid[0]);
+    txBuf[0] = (uint8_t)(udid[0] >> 24);
+    txBuf[1] = (uint8_t)(udid[0] >> 16);
+    txBuf[2] = (uint8_t)(udid[0] >> 8);
+    txBuf[3] = (uint8_t)(udid[0]);
 
     /* UDID1 */
-    txBuf[4] = (uint8_t) (udid[1] >> 24);
-    txBuf[5] = (uint8_t) (udid[1] >> 16);
-    txBuf[6] = (uint8_t) (udid[1] >> 8);
-    txBuf[7] = (uint8_t) (udid[1]);
+    txBuf[4] = (uint8_t)(udid[1] >> 24);
+    txBuf[5] = (uint8_t)(udid[1] >> 16);
+    txBuf[6] = (uint8_t)(udid[1] >> 8);
+    txBuf[7] = (uint8_t)(udid[1]);
 
     CANbus_write(CANID_RESP_PICID_1, txBuf, 8);
 }
 
-void Send_PICID_2(void) {
+void Send_PICID_2(void)
+{
     uint8_t txBuf[8];
 
     /* UDID2 */
-    txBuf[0] = (uint8_t) (udid[2] >> 24);
-    txBuf[1] = (uint8_t) (udid[2] >> 16);
-    txBuf[2] = (uint8_t) (udid[2] >> 8);
-    txBuf[3] = (uint8_t) (udid[2]);
+    txBuf[0] = (uint8_t)(udid[2] >> 24);
+    txBuf[1] = (uint8_t)(udid[2] >> 16);
+    txBuf[2] = (uint8_t)(udid[2] >> 8);
+    txBuf[3] = (uint8_t)(udid[2]);
 
     /* UDID3 */
-    txBuf[4] = (uint8_t) (udid[3] >> 24);
-    txBuf[5] = (uint8_t) (udid[3] >> 16);
-    txBuf[6] = (uint8_t) (udid[3] >> 8);
-    txBuf[7] = (uint8_t) (udid[3]);
+    txBuf[4] = (uint8_t)(udid[3] >> 24);
+    txBuf[5] = (uint8_t)(udid[3] >> 16);
+    txBuf[6] = (uint8_t)(udid[3] >> 8);
+    txBuf[7] = (uint8_t)(udid[3]);
 
     CANbus_write(CANID_RESP_PICID_2, txBuf, 8);
 }
 
-void Send_Software_ID(void) {
+void Send_Software_ID(void)
+{
     uint8_t TxBuf[8];
+
     uint32_t project_id;
     uint32_t firmware_id;
 
     /* Read IDs from parameter matrix */
-    project_id = (uint32_t) R_PROJECT_ID;
-    firmware_id = (uint32_t) R_FIRMWARE_ID;
+    project_id = (uint32_t)R_PROJECT_ID;
+    firmware_id = (uint32_t)R_FIRMWARE_ID;
 
     /* Extract Project ID */
-    uint16_t oem_id = (uint16_t) ((project_id >> 16) & 0xFFFFU);
-    uint16_t application_id = (uint16_t) (project_id & 0xFFFFU);
+    uint16_t oem_id = (uint16_t)((project_id >> 16) & 0xFFFFU);
+    uint16_t application_id = (uint16_t)(project_id & 0xFFFFU);
 
     /* Extract Firmware ID */
-    uint16_t major = (uint16_t) ((firmware_id >> 16) & 0xFFFFU);
-    uint16_t minor = (uint16_t) (firmware_id & 0xFFFFU);
+    uint16_t major = (uint16_t)((firmware_id >> 16) & 0xFFFFU);
+    uint16_t minor = (uint16_t)(firmware_id & 0xFFFFU);
 
     /* OEM ID */
-    TxBuf[0] = (uint8_t) (oem_id >> 8);
-    TxBuf[1] = (uint8_t) (oem_id);
+    TxBuf[0] = (uint8_t)(oem_id >> 8);
+    TxBuf[1] = (uint8_t)(oem_id);
 
     /* Application ID */
-    TxBuf[2] = (uint8_t) (application_id >> 8);
-    TxBuf[3] = (uint8_t) (application_id);
+    TxBuf[2] = (uint8_t)(application_id >> 8);
+    TxBuf[3] = (uint8_t)(application_id);
 
     /* Firmware Major */
-    TxBuf[4] = (uint8_t) (major >> 8);
-    TxBuf[5] = (uint8_t) (major);
+    TxBuf[4] = (uint8_t)(major >> 8);
+    TxBuf[5] = (uint8_t)(major);
 
     /* Firmware Minor */
-    TxBuf[6] = (uint8_t) (minor >> 8);
-    TxBuf[7] = (uint8_t) (minor);
+    TxBuf[6] = (uint8_t)(minor >> 8);
+    TxBuf[7] = (uint8_t)(minor);
 
-    CANbus_write(CANID_RESP_SOFTWARE_ID, TxBuf, sizeof (TxBuf));
+    CANbus_write(CANID_RESP_SOFTWARE_ID, TxBuf, sizeof(TxBuf));
 }
 
-void Boot_Status(void) {
-    uint8_t resp = (uint8_t) CMD_RESP_BOOTLOADER_MODE;
-
-    CANbus_write(CANID_MCU_RESP, &resp, sizeof (resp));
+void Boot_Status(void)
+{
+    uint8_t resp = (uint8_t)CMD_RESP_BOOTLOADER_MODE;
+    CANbus_write(CANID_MCU_RESP, &resp, sizeof(resp));
 }
 
-bool App_Erase(void) {
+void Boot_Jump_Success(void)
+{
+    uint8_t resp = (uint8_t)CMD_RESP_JUMP_OK;
+    CANbus_write(CANID_MCU_RESP, &resp, sizeof(resp));
+}
+
+bool App_Erase(void)
+{
     uint32_t address;
 
     for (address = APPLICATION_START_ADDRESS;
-            address <= APPLICATION_END_ADDRESS;
-            address += FLASH_PAGE_SIZE) {
-        while (NVM_IsBusy()) {
+         address <= APPLICATION_END_ADDRESS;
+         address += NVM_FLASH_PAGESIZE)
+    {
+        while (NVM_IsBusy())
+        {
         }
 
-        if (!NVM_PageErase(address)) {
+        if (!NVM_PageErase(address))
+        {
             return false;
         }
 
-        while (NVM_IsBusy()) {
+        while (NVM_IsBusy())
+        {
         }
     }
 
     return true;
 }
 
-bool App_Erase_Verify(void) {
+bool App_Erase_Verify(void)
+{
     uint32_t address;
 
     for (address = APPLICATION_START_ADDRESS;
-            address <= APPLICATION_END_ADDRESS;
-            address += 4U) {
-        if (*(volatile const uint32_t *) address != 0xFFFFFFFFUL) {
+         address <= APPLICATION_END_ADDRESS;
+         address += 4U)
+    {
+        if (*(volatile const uint32_t *)address != 0xFFFFFFFFUL)
+        {
             return false;
         }
     }
@@ -117,10 +150,152 @@ bool App_Erase_Verify(void) {
     return true;
 }
 
-void App_Erase_Success(void) {
-    uint8_t resp = (uint8_t) CMD_RESP_FLASH_READY;
+void App_Erase_Success(void)
+{
+    uint8_t resp = (uint8_t)CMD_RESP_FLASH_READY;
+    static int ctr = 0;
 
-    CANbus_write(CANID_MCU_RESP, &resp, sizeof (resp));
+    for (ctr = 0; ctr <= 2000000; ctr++)
+    {
+    }
+
+    CANbus_write(CANID_MCU_RESP, &resp, sizeof(resp));
+}
+
+static bool App_Firmware_Write_Flash(void)
+{
+    uint32_t rowAddr;
+    uint32_t offset;
+    uint32_t bytesToWrite = flashBufferIndex;
+
+    uint32_t rowData[FLASH_ROW_SIZE / sizeof(uint32_t)] = {0U};
+
+    if (bytesToWrite == 0U)
+    {
+        return true;
+    }
+
+    rowAddr = flashWriteAddress;
+
+    for (offset = 0; offset < bytesToWrite; offset += FLASH_ROW_SIZE)
+    {
+        __builtin_memset(rowData, 0xFF, sizeof(rowData));
+
+        (void)memcpy(
+            rowData,
+            &flashBuffer[offset],
+            FLASH_ROW_SIZE < (bytesToWrite - offset)
+                ? FLASH_ROW_SIZE
+                : (bytesToWrite - offset));
+
+        if (NVM_RowWrite(rowData, rowAddr) == false)
+        {
+            return false;
+        }
+
+        while (NVM_IsBusy())
+        {
+        }
+
+        if (NVM_ErrorGet() != NVM_ERROR_NONE)
+        {
+            return false;
+        }
+
+        rowAddr += FLASH_ROW_SIZE;
+    }
+
+    flashWriteAddress += bytesToWrite;
+    flashBufferIndex = 0;
+
+    __builtin_memset(flashBuffer, 0xFF, sizeof(flashBuffer));
+
+    return true;
+}
+
+void App_Firmware_Write_Buffer(uint8_t *rxBuffer)
+{
+    uint32_t copyCount;
+    uint32_t remainingBytes;
+    uint32_t payloadOffset;
+
+    /* First byte must be 0x52 */
+    if (rxBuffer[0] != 0x52U)
+    {
+        return;
+    }
+
+    if (flashBufferIndex + CAN_DATA_SIZE > FLASH_CHUNK_SIZE)
+    {
+        remainingBytes = FLASH_CHUNK_SIZE - flashBufferIndex;
+
+        if (remainingBytes > 0U)
+        {
+            copyCount = (remainingBytes < CAN_DATA_SIZE)
+                            ? remainingBytes
+                            : CAN_DATA_SIZE;
+
+            memcpy(&flashBuffer[flashBufferIndex], &rxBuffer[1], copyCount);
+            flashBufferIndex += copyCount;
+        }
+
+        if (flashBufferIndex >= FLASH_CHUNK_SIZE)
+        {
+            if (!App_Firmware_Write_Flash())
+            {
+                flashBufferIndex = 0U;
+                return;
+            }
+
+            CANbus_write(
+                CANID_MCU_RESP,
+                CHUNK_ACK_DATA,
+                sizeof(CHUNK_ACK_DATA));
+
+            flashBufferIndex = 0U;
+        }
+
+        if (flashBufferIndex < FLASH_CHUNK_SIZE)
+        {
+            payloadOffset = copyCount;
+            copyCount = CAN_DATA_SIZE - payloadOffset;
+
+            if (copyCount > 0U)
+            {
+                memcpy(
+                    &flashBuffer[flashBufferIndex],
+                    &rxBuffer[1 + payloadOffset],
+                    copyCount);
+
+                flashBufferIndex += copyCount;
+            }
+        }
+    }
+    else
+    {
+        memcpy(
+            &flashBuffer[flashBufferIndex],
+            &rxBuffer[1],
+            CAN_DATA_SIZE);
+
+        flashBufferIndex += CAN_DATA_SIZE;
+
+        if (flashBufferIndex >= FLASH_CHUNK_SIZE)
+        {
+            if (!App_Firmware_Write_Flash())
+            {
+                flashBufferIndex = 0U;
+                return;
+            }
+
+            CANbus_write(
+                CANID_MCU_RESP,
+                CHUNK_ACK_DATA,
+                sizeof(CHUNK_ACK_DATA));
+
+            flashBufferIndex = 0U;
+        }
+    }
 }
 
 bool Is_App_Present(void)
@@ -129,8 +304,7 @@ bool Is_App_Present(void)
 
     appEntry = *(volatile const uint32_t *)APPLICATION_START_ADDRESS;
 
-    if ((appEntry == 0xFFFFFFFFUL) ||
-        (appEntry == 0x00000000UL))
+    if ((appEntry == 0xFFFFFFFFUL) || (appEntry == 0x00000000UL))
     {
         return false;
     }
@@ -154,9 +328,7 @@ void App_Jump(void)
         return;
     }
 
-    appEntryAddress =
-        *(volatile const uint32_t *)APPLICATION_START_ADDRESS;
-
+    appEntryAddress = *(volatile const uint32_t *)APPLICATION_START_ADDRESS;
     appEntry = (APP_ENTRY_FUNC)appEntryAddress;
 
     /* Disable Global Interrupts */
@@ -174,6 +346,8 @@ void App_Jump(void)
     IFS2 = 0;
     IFS3 = 0;
 
+    __builtin_setIVTBASE((void *)0x808040);
+
     /* Jump to application's reset entry */
     appEntry();
 
@@ -183,8 +357,10 @@ void App_Jump(void)
     }
 }
 
-void Run_Boot_Handler(uint32_t ID, uint8_t CMD) {
-    switch (ID) {
+void Run_Boot_Handler(uint32_t ID, uint8_t *rxBuffer)
+{
+    switch (ID)
+    {
         case CANID_REQ_PICID_1:
             Send_PICID_1();
             break;
@@ -198,25 +374,60 @@ void Run_Boot_Handler(uint32_t ID, uint8_t CMD) {
             break;
 
         case CANID_SCU_REQ:
-            switch (CMD) {
+
+            switch (rxBuffer[0])
+            {
+                case CMD_REQ_STATUS:
+                    Boot_Status();
+                    break;
+
+                case CMD_REQ_BOOTLOADER:
+                    Boot_Jump_Success();
+                    break;
+
                 case CMD_REQ_START:
-                    if (App_Erase()) {
-                        if (App_Erase_Verify()) {
+                    flashWriteAddress = APPLICATION_START_ADDRESS;
+                    flashBufferIndex = 0;
+
+                    __builtin_memset(
+                        flashBuffer,
+                        0xFF,
+                        sizeof(flashBuffer));
+
+                    if (App_Erase())
+                    {
+                        if (App_Erase_Verify())
+                        {
                             App_Erase_Success();
                         }
                     }
-
-                case CMD_REQ_APP_JUMP:
-                    App_Jump();
                     break;
 
-                case CMD_REQ_STATUS:
-                    Boot_Status();
+                case CMD_REQ_DATA:
+                    App_Firmware_Write_Buffer(rxBuffer);
+                    break;
+
+                case CMD_REQ_APP_JUMP:
+                    if (flashBufferIndex > 0U)
+                    {
+                        (void)App_Firmware_Write_Flash();
+                    }
+
+                    App_Jump();
                     break;
 
                 default:
                     break;
             }
+            break;
+
+        case CANID_REQ_END:
+            if (flashBufferIndex > 0U)
+            {
+                (void)App_Firmware_Write_Flash();
+            }
+            break;
+
         default:
             break;
     }

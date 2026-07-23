@@ -74,12 +74,15 @@ void Send_PICID_1(void);
 void Send_PICID_2(void);
 void Send_Software_ID(void);
 void Boot_Status(void);
+void Boot_Jump_Success(void);
 bool App_Erase(void);
 bool App_Erase_Verify(void);
 void App_Erase_Success(void);
+static bool App_Firmware_Write_Flash(void);
+void App_Firmware_Write_Buffer(uint8_t *rxBuffer);
 bool Is_App_Present(void);
 void App_Jump(void);
-void Run_Boot_Handler(uint32_t ID, uint8_t rxBuffer);
+void Run_Boot_Handler(uint32_t ID, uint8_t *rxBuffer);
 
 
 #ifdef __cplusplus

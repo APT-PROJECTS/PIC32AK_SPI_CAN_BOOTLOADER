@@ -155,7 +155,7 @@
                 "memories.programmemory": true,
                 "memories.programmemory.ranges": "800000-80ffff",
                 "programoptions.preserveprogramrange": true,
-                "programoptions.preserveprogram.ranges": "804000-80ffff"
+                "programoptions.preserveprogram.ranges": "808000-80ffff"
             }
         }
     ],
