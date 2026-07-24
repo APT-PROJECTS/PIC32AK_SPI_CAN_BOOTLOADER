@@ -5,12 +5,16 @@
 #include "../driver/device_stat.h"
 
 #define FLASH_CHUNK_SIZE    4096U
-#define FLASH_ROW_SIZE      128U      // PIC32AK NVM row size in bytes
+#define FLASH_ROW_SIZE      (NVM_FLASH_ROWSIZE * sizeof(uint32_t))
+#define BOOT_FLASH_PAGE_SIZE (NVM_FLASH_PAGESIZE * sizeof(uint32_t))
 #define CAN_DATA_SIZE       7U
 
 static uint8_t flashBuffer[FLASH_CHUNK_SIZE];
 static uint32_t flashBufferIndex = 0;
 static uint32_t flashWriteAddress = APPLICATION_START_ADDRESS;
+static bool firmwareUpdateActive = false;
+static bool firmwareUpdateFailed = false;
+static bool firmwareImageReady = false;
 
 static uint8_t CHUNK_ACK_DATA[8] =
 {
@@ -114,7 +118,7 @@ bool App_Erase(void)
 
     for (address = APPLICATION_START_ADDRESS;
          address <= APPLICATION_END_ADDRESS;
-         address += NVM_FLASH_PAGESIZE)
+         address += BOOT_FLASH_PAGE_SIZE)
     {
         while (NVM_IsBusy())
         {
@@ -162,13 +166,21 @@ void App_Erase_Success(void)
     CANbus_write(CANID_MCU_RESP, &resp, sizeof(resp));
 }
 
+static void App_Update_End_Success(void)
+{
+    uint8_t response[8] = {0U};
+
+    CANbus_write(CANID_RESP_END, response, sizeof(response));
+}
+
 static bool App_Firmware_Write_Flash(void)
 {
     uint32_t rowAddr;
     uint32_t offset;
     uint32_t bytesToWrite = flashBufferIndex;
 
-    uint32_t rowData[FLASH_ROW_SIZE / sizeof(uint32_t)] = {0U};
+    /* NVM_FLASH_ROWSIZE is in 32-bit words; the NVM needs all 512 bytes. */
+    static uint32_t rowData[NVM_FLASH_ROWSIZE] __attribute__((aligned(4)));
 
     if (bytesToWrite == 0U)
     {
@@ -179,14 +191,23 @@ static bool App_Firmware_Write_Flash(void)
 
     for (offset = 0; offset < bytesToWrite; offset += FLASH_ROW_SIZE)
     {
+        uint32_t rowBytes;
+
+        if (rowAddr > (APPLICATION_END_ADDRESS - (FLASH_ROW_SIZE - 1U)))
+        {
+            return false;
+        }
+
         __builtin_memset(rowData, 0xFF, sizeof(rowData));
+
+        rowBytes = FLASH_ROW_SIZE < (bytesToWrite - offset)
+                       ? FLASH_ROW_SIZE
+                       : (bytesToWrite - offset);
 
         (void)memcpy(
             rowData,
             &flashBuffer[offset],
-            FLASH_ROW_SIZE < (bytesToWrite - offset)
-                ? FLASH_ROW_SIZE
-                : (bytesToWrite - offset));
+            rowBytes);
 
         if (NVM_RowWrite(rowData, rowAddr) == false)
         {
@@ -198,6 +219,12 @@ static bool App_Firmware_Write_Flash(void)
         }
 
         if (NVM_ErrorGet() != NVM_ERROR_NONE)
+        {
+            return false;
+        }
+
+        /* Do not acknowledge a corrupt row to the OTA device. */
+        if (memcmp((const void *)rowAddr, rowData, FLASH_ROW_SIZE) != 0)
         {
             return false;
         }
@@ -220,7 +247,8 @@ void App_Firmware_Write_Buffer(uint8_t *rxBuffer)
     uint32_t payloadOffset;
 
     /* First byte must be 0x52 */
-    if (rxBuffer[0] != 0x52U)
+    if ((!firmwareUpdateActive) || firmwareUpdateFailed ||
+        (rxBuffer[0] != CMD_REQ_DATA))
     {
         return;
     }
@@ -243,6 +271,7 @@ void App_Firmware_Write_Buffer(uint8_t *rxBuffer)
         {
             if (!App_Firmware_Write_Flash())
             {
+                firmwareUpdateFailed = true;
                 flashBufferIndex = 0U;
                 return;
             }
@@ -284,6 +313,7 @@ void App_Firmware_Write_Buffer(uint8_t *rxBuffer)
         {
             if (!App_Firmware_Write_Flash())
             {
+                firmwareUpdateFailed = true;
                 flashBufferIndex = 0U;
                 return;
             }
@@ -388,6 +418,9 @@ void Run_Boot_Handler(uint32_t ID, uint8_t *rxBuffer)
                 case CMD_REQ_START:
                     flashWriteAddress = APPLICATION_START_ADDRESS;
                     flashBufferIndex = 0;
+                    firmwareUpdateActive = false;
+                    firmwareUpdateFailed = false;
+                    firmwareImageReady = false;
 
                     __builtin_memset(
                         flashBuffer,
@@ -398,6 +431,7 @@ void Run_Boot_Handler(uint32_t ID, uint8_t *rxBuffer)
                     {
                         if (App_Erase_Verify())
                         {
+                            firmwareUpdateActive = true;
                             App_Erase_Success();
                         }
                     }
@@ -408,12 +442,21 @@ void Run_Boot_Handler(uint32_t ID, uint8_t *rxBuffer)
                     break;
 
                 case CMD_REQ_APP_JUMP:
-                    if (flashBufferIndex > 0U)
+                    if (firmwareImageReady && !firmwareUpdateFailed &&
+                        (flashBufferIndex > 0U))
                     {
-                        (void)App_Firmware_Write_Flash();
+                        if (!App_Firmware_Write_Flash())
+                        {
+                            firmwareUpdateFailed = true;
+                            break;
+                        }
                     }
 
-                    App_Jump();
+                    if (firmwareImageReady && !firmwareUpdateFailed)
+                    {
+                        firmwareUpdateActive = false;
+                        App_Jump();
+                    }
                     break;
 
                 default:
@@ -422,9 +465,21 @@ void Run_Boot_Handler(uint32_t ID, uint8_t *rxBuffer)
             break;
 
         case CANID_REQ_END:
-            if (flashBufferIndex > 0U)
+            if (firmwareUpdateActive && !firmwareUpdateFailed &&
+                (flashBufferIndex > 0U))
             {
-                (void)App_Firmware_Write_Flash();
+                if (!App_Firmware_Write_Flash())
+                {
+                    firmwareUpdateFailed = true;
+                }
+            }
+
+            firmwareImageReady = firmwareUpdateActive && !firmwareUpdateFailed;
+            firmwareUpdateActive = false;
+
+            if (firmwareImageReady)
+            {
+                App_Update_End_Success();
             }
             break;
 
