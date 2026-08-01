@@ -286,10 +286,129 @@ void Boot_App_Size_Handler(void)
     }
 }
 
-void Boot_Jump_Success(void)
+bool Boot_Is_App_Present(void)
 {
-    uint8_t resp = (uint8_t)CMD_RESP_JUMP_OK;
-    CANbus_write(CANID_MCU_RESP, &resp, sizeof(resp));
+    uint32_t appEntryAddress;
+
+    appEntryAddress = *(volatile const uint32_t *)APPLICATION_START_ADDRESS;
+
+    if ((appEntryAddress == 0xFFFFFFFFUL) ||
+        (appEntryAddress == 0x00000000UL))
+    {
+        return false;
+    }
+
+    if ((appEntryAddress < APPLICATION_START_ADDRESS) ||
+        (appEntryAddress > APPLICATION_END_ADDRESS))
+    {
+        return false;
+    }
+
+    return true;
+}
+
+void Boot_App_Jump(void)
+{
+    APP_ENTRY_FUNC appEntry;
+    uint32_t appEntryAddress;
+
+    if (Boot_Is_App_Present() == false)
+    {
+        return;
+    }
+
+    appEntryAddress = *(volatile const uint32_t *)APPLICATION_START_ADDRESS;
+    appEntry = (APP_ENTRY_FUNC)appEntryAddress;
+
+    /* Disable Global Interrupts */
+    (void)__builtin_disable_interrupts();
+
+    /* Disable all Interrupt Sources */
+    IEC0 = 0;
+    IEC1 = 0;
+    IEC2 = 0;
+    IEC3 = 0;
+
+    /* Clear Pending Interrupt Flags */
+    IFS0 = 0;
+    IFS1 = 0;
+    IFS2 = 0;
+    IFS3 = 0;
+
+    /* Set Application IVT */
+    __builtin_setIVTBASE((void *)APPLICATION_IVT_ADDRESS);
+
+    /* Jump to application */
+    appEntry();
+
+    while (1)
+    {
+        /* Should never return */
+    }
+}
+
+void Boot_Jump_Handler(void)
+{
+    uint8_t txBuf[8] = {0};
+    uint32_t addr;
+
+    if (canRxBuffer[0] != BOOT_CAN_CMD_0_JUMP)
+    {
+        return;
+    }
+
+    addr = (uint32_t)&Boot_Jump_Handler;
+
+    txBuf[0] = BOOT_CAN_CMD_0_JUMP;
+    txBuf[1] = canRxBuffer[1];
+
+    switch (canRxBuffer[1])
+    {
+        case BOOT_CAN_CMD_1_BOOT_JUMP:
+
+            /* Already running in Bootloader */
+            if ((addr >= BOOTLOADER_START_ADDRESS) &&
+                (addr <= BOOTLOADER_END_ADDRESS))
+            {
+                txBuf[3] = BOOT_CAN_CMD_3_SUCCESS;
+                CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof(txBuf));
+                break;
+            }
+
+            /* Set boot flag and reset */
+            W_BOOT_FLAG = 1.0f;
+
+            __builtin_memset(eepromBuffer, 0xFF, EEPROM_DATA_SIZE);
+            __builtin_memcpy(eepromBuffer, writeMatrix, sizeof(writeMatrix));
+
+            if (FLASH_EEPROM_Write_Page(eepromBuffer,
+                                        sizeof(writeMatrix)) == FLASH_EEPROM_OK)
+            {
+                asm("reset");
+            }
+            break;
+
+        case BOOT_CAN_CMD_1_APP_JUMP:
+
+            /* Already running in Application */
+            if ((addr >= APPLICATION_START_ADDRESS) &&
+                (addr <= APPLICATION_END_ADDRESS))
+            {
+                txBuf[3] = BOOT_CAN_CMD_3_SUCCESS;
+                CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof(txBuf));
+                break;
+            }
+
+            /* Jump to Application */
+            if (Boot_Is_App_Present() == true)
+            {
+                Boot_App_Jump();
+            }
+            break;
+
+        default:
+            break;
+    }
 }
 
 bool App_Erase(void)
@@ -508,64 +627,6 @@ void App_Firmware_Write_Buffer(uint8_t *rxBuffer)
     }
 }
 
-bool Is_App_Present(void)
-{
-    uint32_t appEntry;
-
-    appEntry = *(volatile const uint32_t *)APPLICATION_START_ADDRESS;
-
-    if ((appEntry == 0xFFFFFFFFUL) || (appEntry == 0x00000000UL))
-    {
-        return false;
-    }
-
-    if ((appEntry < APPLICATION_START_ADDRESS) ||
-        (appEntry > APPLICATION_END_ADDRESS))
-    {
-        return false;
-    }
-
-    return true;
-}
-
-void App_Jump(void)
-{
-    APP_ENTRY_FUNC appEntry;
-    uint32_t appEntryAddress;
-
-    if (Is_App_Present() == false)
-    {
-        return;
-    }
-
-    appEntryAddress = *(volatile const uint32_t *)APPLICATION_START_ADDRESS;
-    appEntry = (APP_ENTRY_FUNC)appEntryAddress;
-
-    /* Disable Global Interrupts */
-    (void)__builtin_disable_interrupts();
-
-    /* Disable all Interrupt Sources */
-    IEC0 = 0;
-    IEC1 = 0;
-    IEC2 = 0;
-    IEC3 = 0;
-
-    /* Clear Pending Interrupt Flags */
-    IFS0 = 0;
-    IFS1 = 0;
-    IFS2 = 0;
-    IFS3 = 0;
-
-    __builtin_setIVTBASE((void *)0x808040);
-
-    /* Jump to application's reset entry */
-    appEntry();
-
-    while (1)
-    {
-        /* Should never return */
-    }
-}
 
 void Run_Boot_Handler(uint32_t ID, uint8_t *rxBuffer)
 {
@@ -599,6 +660,12 @@ void Run_Boot_Handler(uint32_t ID, uint8_t *rxBuffer)
                     Boot_App_Size_Handler();
                     break;
                 }
+
+                case BOOT_CAN_CMD_0_JUMP:
+                {
+                    Boot_Jump_Handler();
+                    break;
+                }
                     
                 default:
                     break;
@@ -610,10 +677,6 @@ void Run_Boot_Handler(uint32_t ID, uint8_t *rxBuffer)
 
             switch (rxBuffer[0])
             {
-                case CMD_REQ_BOOTLOADER:
-                    Boot_Jump_Success();
-                    break;
-
                 case CMD_REQ_START:
                     flashWriteAddress = APPLICATION_START_ADDRESS;
                     flashBufferIndex = 0;
@@ -654,7 +717,7 @@ void Run_Boot_Handler(uint32_t ID, uint8_t *rxBuffer)
                     if (firmwareImageReady && !firmwareUpdateFailed)
                     {
                         firmwareUpdateActive = false;
-                        App_Jump();
+                        // App_Jump();
                     }
                     break;
 

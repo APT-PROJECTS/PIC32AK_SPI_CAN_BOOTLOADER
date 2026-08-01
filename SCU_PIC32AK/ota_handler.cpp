@@ -507,26 +507,28 @@ bool OTA_Handler_CORE1(void) {
       break;
 
       // ==================================================
-    case OTA_CORE1_SEND_BOOT_JMP_REQ:
+    case OTA_CORE1_BOOT_JUMP:
       {
-        uint8_t tx[8] = { 0 };
+        uint8_t txBuf[8] = { 0 };
 
         mcuUpdateStarted = true;
-        tx[0] = CMD_REQ_BOOTLOADER;
+        txBuf[0] = OTA_CAN_CMD_0_JUMP;
+        txBuf[1] = OTA_CAN_CMD_1_BOOT_JUMP;
 
-        if (!CAN_WriteFrame(CANID_SCU_REQ, tx, 8)) {
-          Serial.println("OTA CORE1: Failed to send BOOTLOADER JUMP cmd");
+
+        if (!CAN_WriteFrame(OTA_CAN_ID_HOST, txBuf, 8)) {
+          Serial.println("OTA CORE1: BOOT JUMP REQUEST SEND FAIL");
           // otaCore1State = OTA_CORE1_ERROR;
           break;
         }
 
-        Serial.println("OTA CORE1: BOOTLOADER JUMP command sent");
+        Serial.println("OTA CORE1: BOOT JUMP REQUEST SEND SUCCESS");
 
         otaPrevTxState = otaCore1State;
         otaRxStartTime = millis();
         otaCore1State = OTA_CORE1_CAN_RX_HANDLE;
-        break;
       }
+      break;
 
       // ==================================================
     case OTA_CORE1_SEND_STATUS_REQ:
@@ -717,10 +719,11 @@ bool OTA_Handler_CORE1(void) {
       // ==================================================
     case OTA_CORE1_APP_JMP_REQ:
       {
-        uint8_t tx[8] = { 0 };
-        tx[0] = CMD_REQ_APP_JUMP;  // 0x56
+        uint8_t txBuf[8] = { 0 };
+        txBuf[0] = OTA_CAN_CMD_0_JUMP;  
+        txBuf[1] = OTA_CAN_CMD_1_APP_JUMP;
 
-        if (!CAN_WriteFrame(CANID_SCU_REQ, tx, 8)) {
+        if (!CAN_WriteFrame(OTA_CAN_ID_HOST, txBuf, 8)) {
           Serial.println("OTA CORE1: APP JUMP request send failed");
           // otaCore1State = OTA_CORE1_ERROR;
           break;
@@ -728,12 +731,9 @@ bool OTA_Handler_CORE1(void) {
 
         Serial.println("OTA CORE1: APP JUMP command sent");
 
-        sendReport = true;
-
-        // No ACK expected → OTA complete
-        otaCore1State = OTA_CORE1_DONE;
-        otaCore0State = OTA_CORE0_REPORT;    // Trigger report
-        otaReportStatus = TWO_STEP_SUCCESS;  // ✅ SET SUCCESS
+        otaPrevTxState = otaCore1State;
+        otaRxStartTime = millis();
+        otaCore1State = OTA_CORE1_CAN_RX_HANDLE;
         break;
       }
 
@@ -912,7 +912,7 @@ bool OTA_Handler_CORE1(void) {
                               case OTA_CAN_CMD_3_SUCCESS:
                                 {
                                   Serial.println("OTA CORE1: APP SIZE SUCCESS");
-                                  otaCore1State = OTA_CORE1_SEND_BOOT_JMP_REQ;
+                                  otaCore1State = OTA_CORE1_BOOT_JUMP;
                                 }
                                 break;
 
@@ -921,6 +921,73 @@ bool OTA_Handler_CORE1(void) {
                                   Serial.println("OTA CORE1: APP SIZE FAIL");
                                   sendReport = true;
                                   otaReportStatus = APP_SIZE_EXCEED;
+
+                                  otaCore1State = OTA_CORE1_ERROR;
+                                  otaCore0State = OTA_CORE0_REPORT;
+                                }
+                                break;
+
+                              default:
+                                break;
+                            }
+                          }
+                          break;
+
+                        default:
+                          break;
+                      }
+                    }
+                    break;
+
+                  case OTA_CAN_CMD_0_JUMP:
+                    {
+                      switch (rx.data[1]) {
+                        case OTA_CAN_CMD_1_BOOT_JUMP:
+                          {
+                            switch (rx.data[3]) {
+                              case OTA_CAN_CMD_3_SUCCESS:
+                                {
+                                  Serial.println("OTA CORE1: BOOT JUMP SUCCESS");
+                                  otaCore1State = OTA_CORE1_SEND_START_REQ;
+                                }
+                                break;
+
+                              case OTA_CAN_CMD_3_FAIL:
+                                {
+                                  Serial.println("OTA CORE1: BOOT JUMP FAIL");
+                                  sendReport = true;
+                                  otaReportStatus = BOOT_JUMP_FAIL;
+
+                                  otaCore1State = OTA_CORE1_ERROR;
+                                  otaCore0State = OTA_CORE0_REPORT;
+                                }
+                                break;
+
+                              default:
+                                break;
+                            }
+                          }
+                          break;
+
+                        case OTA_CAN_CMD_1_APP_JUMP:
+                          {
+                            switch (rx.data[3]) {
+                              case OTA_CAN_CMD_3_SUCCESS:
+                                {
+                                  Serial.println("OTA CORE1: APP JUMP SUCCESS");
+                                  sendReport = true;
+                                  otaReportStatus = TWO_STEP_SUCCESS;  // ✅ SET SUCCESS
+
+                                  otaCore1State = OTA_CORE1_DONE;
+                                  otaCore0State = OTA_CORE0_REPORT;  // Trigger report
+                                }
+                                break;
+
+                              case OTA_CAN_CMD_3_FAIL:
+                                {
+                                  Serial.println("OTA CORE1: APP JUMP FAIL");
+                                  sendReport = true;
+                                  otaReportStatus = APP_JUMP_FAIL;
 
                                   otaCore1State = OTA_CORE1_ERROR;
                                   otaCore0State = OTA_CORE0_REPORT;
@@ -979,7 +1046,6 @@ bool OTA_Handler_CORE1(void) {
 
                 switch (resp) {
 
-                  case CMD_RESP_JUMP_OK:
                   case CMD_RESP_BOOTLOADER_MODE:
                     mcuMode = MCU_MODE_BOOTLOADER;
                     Serial.println("OTA CORE1: MCU in BOOTLOADER mode");
@@ -993,7 +1059,7 @@ bool OTA_Handler_CORE1(void) {
 
                   case CMD_RESP_APPLICATION_MODE:
                     Serial.println("OTA CORE1: MCU in APPLICATION mode");
-                    otaCore1State = OTA_CORE1_SEND_BOOT_JMP_REQ;
+                    otaCore1State = OTA_CORE1_BOOT_JUMP;
                     break;
 
                   default:
@@ -1065,12 +1131,24 @@ bool OTA_Handler_CORE1(void) {
                   otaCore0State = OTA_CORE0_REPORT;
                 }
 
-              case OTA_CORE1_SEND_BOOT_JMP_REQ:
+              case OTA_CORE1_COMPARE_APP_SIZE:
+                {
+                  Serial.println("OTA CORE1: APPLICATION SIZE EXCEED");
+
+                  sendReport = true;
+                  otaReportStatus = APP_SIZE_EXCEED;
+
+                  otaCore1State = OTA_CORE1_ERROR;
+                  otaCore0State = OTA_CORE0_REPORT;
+                }
+                break;
+
+              case OTA_CORE1_BOOT_JUMP:
                 {
                   Serial.println("OTA CORE1: BOOTLOADER JUMP FAILED");
 
                   sendReport = true;
-                  otaReportStatus = BOOT_JUMP_FAILED;
+                  otaReportStatus = BOOT_JUMP_FAIL;
 
                   otaCore1State = OTA_CORE1_ERROR;
                   otaCore0State = OTA_CORE0_REPORT;
