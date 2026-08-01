@@ -1,0 +1,41 @@
+configVersion: 1.0.0
+componentName: crc
+coreVersion: 5.9.0
+device: PIC32AK6416GC41064
+library: []
+dependency:
+- dependencyPackage: class com.microchip.mcc.harmony.HarmonyModule
+  name: crc
+  type: module
+  version: ''
+- dependencyPackage: ''
+  name: csp
+  type: package
+  version: v3.22.6
+customDataClassName: com.microchip.utils_mh3.utils.persistence.CustomModuleData
+data:
+  attachments: {}
+  elementPosition:
+    attributes:
+      id: __ROOTVIEW
+    children:
+    - children:
+      - attributes:
+          id: crc
+          x: '89'
+          y: '165'
+        type: ElementPosition
+      type: ElementPositions
+    type: ComponentGraph
+  symbols:
+    CRC_IFS_REG:
+      attributes:
+        id: CRC_IFS_REG
+        label: CRC_IFS_REG
+      type: String
+    CRC_INSTANCE_NAME:
+      attributes:
+        id: CRC_INSTANCE_NAME
+        label: CRC_INSTANCE_NAME
+      type: String
+  userData: {}

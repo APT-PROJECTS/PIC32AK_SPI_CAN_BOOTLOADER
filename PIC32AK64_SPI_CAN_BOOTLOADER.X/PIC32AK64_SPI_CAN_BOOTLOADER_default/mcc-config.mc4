@@ -6,12 +6,13 @@ deviceLibrary: {}
 groupModules: []
 modules:
 - core
+- crc
 - dfp
 - nvm
 - spi1
 generatedFileHashHistoryMap:
 - file: ..\src\config\default\definitions.h
-  hash: 6e672f48f9abbe14b783c91967de132b93095de0042e732dcf6056e0debb54c3
+  hash: 0448c70cc3748a079ead0e0f2ffa87bc30f80c8754a73cb031d3e57d03d84872
 - file: ..\src\config\default\device.h
   hash: ae9334f1f1a7868eb3f27a0a2a9100a31af74d1fd227d97e20cc04d39e272e05
 - file: ..\src\config\default\initialization.c
@@ -26,6 +27,10 @@ generatedFileHashHistoryMap:
   hash: 9b3f1b4580f7a48136dd2d7b3a88e6d726212c400f7daa8b49649889085b9d52
 - file: ..\src\config\default\peripheral\clk\plib_clk_common.h
   hash: eef1f2bb06ca84239b4c79659fca909ebed461905c0b447fac7e756f5d3fd6d3
+- file: ..\src\config\default\peripheral\crc\plib_crc.c
+  hash: 6722a89dbddf6cc9bf5ea3bc10f4fd8e7f88a007e5eab2c6406c5a81a39a945d
+- file: ..\src\config\default\peripheral\crc\plib_crc.h
+  hash: 78953e66bc902471514c247eb71eaf7ee422b9e881a8e9fbd08fea068a7e7eda
 - file: ..\src\config\default\peripheral\gpio\plib_gpio.c
   hash: 29c3f99974ba5beeec3b4189a09d4a1769cb65466d6357e7c6aa95cac980e996
 - file: ..\src\config\default\peripheral\gpio\plib_gpio.h

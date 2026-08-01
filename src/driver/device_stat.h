@@ -41,12 +41,12 @@ extern float writeMatrix[ROWS][COLS];
 #define R_PROJECT_ID                 readMatrix[0][0]
 #define R_FIRMWARE_ID                readMatrix[0][1]
 #define R_BOOT_FLAG                  readMatrix[0][2]
-#define R_FF00_04                    readMatrix[0][3]
+#define R_APP_SIZE                   readMatrix[0][3]
 
 #define W_PROJECT_ID                 writeMatrix[0][0]
 #define W_FIRMWARE_ID                writeMatrix[0][1]
 #define W_BOOT_FLAG                  writeMatrix[0][2]
-#define W_FF00_04                    writeMatrix[0][3]
+#define W_APP_SIZE                   writeMatrix[0][3]
 
 //==================================================
 // ROW 1

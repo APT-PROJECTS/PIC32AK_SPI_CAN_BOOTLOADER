@@ -88,7 +88,11 @@ void Load_Read_Matrix(void) {
     }
     else{
         for(ctr = 0; ctr <= 200000000; ctr++);
-        App_Jump();
+        /* Jump to Application */
+        if (Boot_Is_App_Present() == true)
+        {
+            Boot_App_Jump();
+        }
     }
 }
 
