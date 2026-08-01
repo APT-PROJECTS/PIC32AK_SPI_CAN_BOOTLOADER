@@ -14,6 +14,63 @@
 #define OTA_FIRMWARE_URL "https://ota.aproposdrive.com/api/firmware/latest-firmware"
 #define OTA_REPORT_URL "https://ota.aproposdrive.com/api/ota-updates/report"
 
+/* =====================================================
+ * CAN_ID
+ * ===================================================== */
+typedef enum {
+  OTA_CAN_ID_HOST = 0xB0U,
+  OTA_CAN_ID_CLIENT = 0xB1U
+} CAN_ID_t;
+
+/* =====================================================
+ * CAN_CMD
+ * ===================================================== */
+typedef enum {
+  OTA_CAN_CMD_2_READ = 0x01,
+  OTA_CAN_CMD_2_WRITE = 0x02,
+  OTA_CAN_CMD_2_COMPARE = 0x03,
+
+  OTA_CAN_CMD_3_SUCCESS = 0x01,
+  OTA_CAN_CMD_3_FAIL = 0x02,
+
+  OTA_CAN_CMD_0_PIC_ID = 0x01U,
+  OTA_CAN_CMD_1_PIC_ID_1 = 0x01U,
+  OTA_CAN_CMD_1_PIC_ID_2 = 0x02U,
+  OTA_CAN_CMD_1_PIC_ID_3 = 0x03U,
+  OTA_CAN_CMD_1_PIC_ID_4 = 0x04U,
+
+  OTA_CAN_CMD_0_SOFTWARE_ID = 0x02U,
+  OTA_CAN_CMD_1_PROJECT_ID = 0x01U,
+  OTA_CAN_CMD_1_FIRMWARE_ID = 0x02U,
+
+  OTA_CAN_CMD_0_STATUS = 0x03U,
+  OTA_CAN_CMD_1_STATUS_BOOT = 0x01U,
+  OTA_CAN_CMD_1_STATUS_APP = 0x02U,
+  OTA_CAN_CMD_1_STATUS_UNKNOWN = 0x03U,
+
+  OTA_CAN_CMD_0_APP_SIZE = 0x04U,
+
+  OTA_CAN_CMD_0_APP_CHUNK_TEST = 0x05U,
+  OTA_CAN_CMD_1_APP_CHUNK_1_TEST = 0x01U,
+  OTA_CAN_CMD_1_APP_CHUNK_2_TEST = 0x02U,
+  OTA_CAN_CMD_1_APP_CHUNK_3_TEST = 0x03U,
+  OTA_CAN_CMD_1_APP_CHUNK_4_TEST = 0x04U,
+  OTA_CAN_CMD_1_APP_CHUNK_5_TEST = 0x05U,
+  OTA_CAN_CMD_1_APP_CHUNK_6_TEST = 0x06U,
+  OTA_CAN_CMD_1_APP_CHUNK_7_TEST = 0x07U,
+  OTA_CAN_CMD_1_APP_CHUNK_8_TEST = 0x08U,
+
+  OTA_CAN_CMD_0_JUMP = 0x06U,
+  OTA_CAN_CMD_1_BOOT_JUMP = 0x01U,
+  OTA_CAN_CMD_1_APP_JUMP = 0x02U,
+
+  OTA_CAN_CMD_0_APP_ERASE = 0x07U,
+
+  OTA_CAN_CMD_0_APP_CHUNK = 0x08U,
+
+  OTA_CAN_CMD_0_APP_CRC = 0x09U,
+} CAN_CMD_t;
+
 
 /* =====================================================
  * CAN IDs REQUEST (SCU → MCU)
@@ -99,8 +156,10 @@ typedef enum {
  * ===================================================== */
 typedef enum {
   OTA_CORE1_IDLE = 0,
-  OTA_CORE1_SEND_PICID_1_REQ,
-  OTA_CORE1_SEND_PICID_2_REQ,
+  OTA_CORE1_READ_PIC_ID_1,
+  OTA_CORE1_READ_PIC_ID_2,
+  OTA_CORE1_READ_PIC_ID_3,
+  OTA_CORE1_READ_PIC_ID_4,
   OTA_CORE1_SEND_SOFTWARE_ID_REQ,
   OTA_CORE1_SEND_BOOT_JMP_REQ,
   OTA_CORE1_SEND_STATUS_REQ, 
