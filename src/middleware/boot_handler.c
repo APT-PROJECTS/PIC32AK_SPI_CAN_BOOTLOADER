@@ -22,416 +22,100 @@ static uint8_t CHUNK_ACK_DATA[8] =
     0x11, 0x22, 0x44, 0x33
 };
 
-static uint8_t canRxBuffer[8] = {0U};
-
 typedef void (*APP_ENTRY_FUNC)(void);
 
-void Boot_PIC_ID_Handler(void)
+void Send_PICID_1(void)
 {
     uint8_t txBuf[8];
-    uint32_t udidValue;
 
-    if (canRxBuffer[0] != BOOT_CAN_CMD_0_PIC_ID)
-    {
-        return;
-    }
+    /* UDID0 */
+    txBuf[0] = (uint8_t)(udid[0] >> 24);
+    txBuf[1] = (uint8_t)(udid[0] >> 16);
+    txBuf[2] = (uint8_t)(udid[0] >> 8);
+    txBuf[3] = (uint8_t)(udid[0]);
 
-    switch (canRxBuffer[2])
-    {
-        /*------------------------- READ --------------------------*/
-        case BOOT_CAN_CMD_2_READ:
+    /* UDID1 */
+    txBuf[4] = (uint8_t)(udid[1] >> 24);
+    txBuf[5] = (uint8_t)(udid[1] >> 16);
+    txBuf[6] = (uint8_t)(udid[1] >> 8);
+    txBuf[7] = (uint8_t)(udid[1]);
 
-            txBuf[0] = BOOT_CAN_CMD_0_PIC_ID;
-            txBuf[1] = canRxBuffer[1];
-            txBuf[2] = BOOT_CAN_CMD_2_READ;
-            txBuf[3] = 0x00;
-
-            switch (canRxBuffer[1])
-            {
-                case BOOT_CAN_CMD_1_PIC_ID_1:
-                    udidValue = udid[0];
-                    break;
-
-                case BOOT_CAN_CMD_1_PIC_ID_2:
-                    udidValue = udid[1];
-                    break;
-
-                case BOOT_CAN_CMD_1_PIC_ID_3:
-                    udidValue = udid[2];
-                    break;
-
-                case BOOT_CAN_CMD_1_PIC_ID_4:
-                    udidValue = udid[3];
-                    break;
-
-                default:
-                    return;
-            }
-
-            txBuf[4] = (uint8_t)(udidValue >> 24);
-            txBuf[5] = (uint8_t)(udidValue >> 16);
-            txBuf[6] = (uint8_t)(udidValue >> 8);
-            txBuf[7] = (uint8_t)(udidValue);
-
-            CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof(txBuf));
-            break;
-
-        default:
-            break;
-    }
+    CANbus_write(CANID_RESP_PICID_1, txBuf, 8);
 }
 
-void Boot_Software_ID_Handler(void)
+void Send_PICID_2(void)
 {
     uint8_t txBuf[8];
-    float softwareId;
 
-    if (canRxBuffer[0] != BOOT_CAN_CMD_0_SOFTWARE_ID)
-    {
-        return;
-    }
+    /* UDID2 */
+    txBuf[0] = (uint8_t)(udid[2] >> 24);
+    txBuf[1] = (uint8_t)(udid[2] >> 16);
+    txBuf[2] = (uint8_t)(udid[2] >> 8);
+    txBuf[3] = (uint8_t)(udid[2]);
 
-    switch (canRxBuffer[2])
-    {
-        /*------------------------- READ --------------------------*/
-        case BOOT_CAN_CMD_2_READ:
+    /* UDID3 */
+    txBuf[4] = (uint8_t)(udid[3] >> 24);
+    txBuf[5] = (uint8_t)(udid[3] >> 16);
+    txBuf[6] = (uint8_t)(udid[3] >> 8);
+    txBuf[7] = (uint8_t)(udid[3]);
 
-            txBuf[0] = BOOT_CAN_CMD_0_SOFTWARE_ID;
-            txBuf[1] = canRxBuffer[1];
-            txBuf[2] = BOOT_CAN_CMD_2_READ;
-            txBuf[3] = 0x00;
-
-            switch (canRxBuffer[1])
-            {
-                case BOOT_CAN_CMD_1_PROJECT_ID:
-                    softwareId = R_PROJECT_ID;
-                    break;
-
-                case BOOT_CAN_CMD_1_FIRMWARE_ID:
-                    softwareId = R_FIRMWARE_ID;
-                    break;
-
-                default:
-                    return;
-            }
-
-            memcpy(&txBuf[4], &softwareId, sizeof(float));
-
-            CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof(txBuf));
-            break;
-
-        /*------------------------- WRITE -------------------------*/
-        case BOOT_CAN_CMD_2_WRITE:
-
-            txBuf[0] = BOOT_CAN_CMD_0_SOFTWARE_ID;
-            txBuf[1] = canRxBuffer[1];
-            txBuf[2] = BOOT_CAN_CMD_2_WRITE;
-            txBuf[3] = 0x00;
-
-            switch (canRxBuffer[1])
-            {
-                case BOOT_CAN_CMD_1_PROJECT_ID:
-                    memcpy(&W_PROJECT_ID, &canRxBuffer[4], sizeof(float));
-                    break;
-
-                case BOOT_CAN_CMD_1_FIRMWARE_ID:
-                    memcpy(&W_FIRMWARE_ID, &canRxBuffer[4], sizeof(float));
-                    break;
-
-                default:
-                    return;
-            }
-
-            memset(eepromBuffer, 0xFF, EEPROM_DATA_SIZE);
-            memcpy(eepromBuffer, writeMatrix, sizeof(writeMatrix));
-
-            if (FLASH_EEPROM_Write_Page(eepromBuffer, sizeof(writeMatrix)) == FLASH_EEPROM_OK)
-            {
-                txBuf[3] = BOOT_CAN_CMD_3_SUCCESS;
-            }
-            else
-            {
-                txBuf[3] = BOOT_CAN_CMD_3_FAIL;
-            }
-
-            CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof(txBuf));
-            break;
-
-        default:
-            break;
-    }
+    CANbus_write(CANID_RESP_PICID_2, txBuf, 8);
 }
 
-void Boot_Status_Handler(void)
+void Send_Software_ID(void)
 {
-    uint8_t txBuf[8] = {0};
-    uint32_t addr;
+    uint8_t TxBuf[8];
 
-    if (canRxBuffer[0] != BOOT_CAN_CMD_0_STATUS)
-    {
-        return;
-    }
+    uint32_t project_id;
+    uint32_t firmware_id;
 
-    switch (canRxBuffer[2])
-    {
-        /*------------------------- READ --------------------------*/
-        case BOOT_CAN_CMD_2_READ:
+    /* Read IDs from parameter matrix */
+    project_id = (uint32_t)R_PROJECT_ID;
+    firmware_id = (uint32_t)R_FIRMWARE_ID;
 
-            /* Get the address of this function */
-            addr = (uint32_t)&Boot_Status_Handler;
+    /* Extract Project ID */
+    uint16_t oem_id = (uint16_t)((project_id >> 16) & 0xFFFFU);
+    uint16_t application_id = (uint16_t)(project_id & 0xFFFFU);
 
-            txBuf[0] = BOOT_CAN_CMD_0_STATUS;
-            txBuf[2] = BOOT_CAN_CMD_2_READ;
+    /* Extract Firmware ID */
+    uint16_t major = (uint16_t)((firmware_id >> 16) & 0xFFFFU);
+    uint16_t minor = (uint16_t)(firmware_id & 0xFFFFU);
 
-            if ((addr >= BOOTLOADER_START_ADDRESS) &&
-                (addr <= BOOTLOADER_END_ADDRESS))
-            {
-                txBuf[1] = BOOT_CAN_CMD_1_STATUS_BOOT;
-            }
-            else if ((addr >= APPLICATION_START_ADDRESS) &&
-                     (addr <= APPLICATION_END_ADDRESS))
-            {
-                txBuf[1] = BOOT_CAN_CMD_1_STATUS_APP;
-            }
-            else
-            {
-                txBuf[1] = BOOT_CAN_CMD_1_STATUS_UNKNOWN;
-            }
+    /* OEM ID */
+    TxBuf[0] = (uint8_t)(oem_id >> 8);
+    TxBuf[1] = (uint8_t)(oem_id);
 
-            CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof(txBuf));
-            break;
+    /* Application ID */
+    TxBuf[2] = (uint8_t)(application_id >> 8);
+    TxBuf[3] = (uint8_t)(application_id);
 
-        default:
-            break;
-    }
+    /* Firmware Major */
+    TxBuf[4] = (uint8_t)(major >> 8);
+    TxBuf[5] = (uint8_t)(major);
+
+    /* Firmware Minor */
+    TxBuf[6] = (uint8_t)(minor >> 8);
+    TxBuf[7] = (uint8_t)(minor);
+
+    CANbus_write(CANID_RESP_SOFTWARE_ID, TxBuf, sizeof(TxBuf));
 }
 
-void Boot_App_Size_Handler(void)
+void Boot_Status(void)
 {
-    uint8_t txBuf[8] = {0};
-    uint32_t firmwareSize;
-    uint32_t maxAppSize;
-
-    if (canRxBuffer[0] != BOOT_CAN_CMD_0_APP_SIZE)
-    {
-        return;
-    }
-
-    switch (canRxBuffer[2])
-    {
-        /*----------------------- COMPARE -------------------------*/
-        case BOOT_CAN_CMD_2_COMPARE:
-
-            /* Extract firmware size (bytes) from CAN bytes 4-7 */
-            firmwareSize = ((uint32_t)canRxBuffer[4] << 24) |
-                           ((uint32_t)canRxBuffer[5] << 16) |
-                           ((uint32_t)canRxBuffer[6] << 8)  |
-                           ((uint32_t)canRxBuffer[7]);
-
-            /* Maximum allowed firmware size = Application partition - 4 KB */
-            maxAppSize = (APPLICATION_END_ADDRESS - APPLICATION_START_ADDRESS + 1U) - (4U * 1024U);
-
-            txBuf[0] = BOOT_CAN_CMD_0_APP_SIZE;
-            txBuf[2] = BOOT_CAN_CMD_2_COMPARE;
-
-            if (firmwareSize < maxAppSize)
-            {
-                txBuf[3] = BOOT_CAN_CMD_3_SUCCESS;
-            }
-            else
-            {
-                txBuf[3] = BOOT_CAN_CMD_3_FAIL;
-            }
-
-            CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof(txBuf));
-            break;
-
-        /*------------------------- READ --------------------------*/
-        case BOOT_CAN_CMD_2_READ:
-
-            firmwareSize = (uint32_t)R_APP_SIZE;
-
-            txBuf[0] = BOOT_CAN_CMD_0_APP_SIZE;
-            txBuf[2] = BOOT_CAN_CMD_2_READ;
-            txBuf[3] = 0x00;
-
-            txBuf[4] = (uint8_t)(firmwareSize >> 24);
-            txBuf[5] = (uint8_t)(firmwareSize >> 16);
-            txBuf[6] = (uint8_t)(firmwareSize >> 8);
-            txBuf[7] = (uint8_t)(firmwareSize);
-
-            CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof(txBuf));
-            break;
-
-        /*------------------------- WRITE -------------------------*/
-        case BOOT_CAN_CMD_2_WRITE:
-
-            W_APP_SIZE = ((uint32_t)canRxBuffer[4] << 24) |
-                         ((uint32_t)canRxBuffer[5] << 16) |
-                         ((uint32_t)canRxBuffer[6] << 8)  |
-                         ((uint32_t)canRxBuffer[7]);
-
-            memset(eepromBuffer, 0xFF, EEPROM_DATA_SIZE);
-            memcpy(eepromBuffer, writeMatrix, sizeof(writeMatrix));
-
-            txBuf[0] = BOOT_CAN_CMD_0_APP_SIZE;
-            txBuf[2] = BOOT_CAN_CMD_2_WRITE;
-
-            if (FLASH_EEPROM_Write_Page(eepromBuffer, sizeof(writeMatrix)) == FLASH_EEPROM_OK)
-            {
-                txBuf[3] = BOOT_CAN_CMD_3_SUCCESS;
-            }
-            else
-            {
-                txBuf[3] = BOOT_CAN_CMD_3_FAIL;
-            }
-
-            CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof(txBuf));
-            break;
-
-        default:
-            break;
-    }
+    uint8_t resp = (uint8_t)CMD_RESP_BOOTLOADER_MODE;
+    CANbus_write(CANID_MCU_RESP, &resp, sizeof(resp));
 }
 
-bool Boot_Is_App_Present(void)
+void Boot_Jump_Success(void)
 {
-    uint32_t appEntryAddress;
-
-    appEntryAddress = *(volatile const uint32_t *)APPLICATION_START_ADDRESS;
-
-    if ((appEntryAddress == 0xFFFFFFFFUL) ||
-        (appEntryAddress == 0x00000000UL))
-    {
-        return false;
-    }
-
-    if ((appEntryAddress < APPLICATION_START_ADDRESS) ||
-        (appEntryAddress > APPLICATION_END_ADDRESS))
-    {
-        return false;
-    }
-
-    return true;
+    uint8_t resp = (uint8_t)CMD_RESP_JUMP_OK;
+    CANbus_write(CANID_MCU_RESP, &resp, sizeof(resp));
 }
 
-void Boot_App_Jump(void)
+bool App_Erase(void)
 {
-    APP_ENTRY_FUNC appEntry;
-    uint32_t appEntryAddress;
-
-    if (Boot_Is_App_Present() == false)
-    {
-        return;
-    }
-
-    appEntryAddress = *(volatile const uint32_t *)APPLICATION_START_ADDRESS;
-    appEntry = (APP_ENTRY_FUNC)appEntryAddress;
-
-    /* Disable Global Interrupts */
-    (void)__builtin_disable_interrupts();
-
-    /* Disable all Interrupt Sources */
-    IEC0 = 0;
-    IEC1 = 0;
-    IEC2 = 0;
-    IEC3 = 0;
-
-    /* Clear Pending Interrupt Flags */
-    IFS0 = 0;
-    IFS1 = 0;
-    IFS2 = 0;
-    IFS3 = 0;
-
-    /* Set Application IVT */
-    __builtin_setIVTBASE((void *)APPLICATION_IVT_ADDRESS);
-
-    /* Jump to application */
-    appEntry();
-
-    while (1)
-    {
-        /* Should never return */
-    }
-}
-
-void Boot_Jump_Handler(void)
-{
-    uint8_t txBuf[8] = {0};
-    uint32_t addr;
-
-    if (canRxBuffer[0] != BOOT_CAN_CMD_0_JUMP)
-    {
-        return;
-    }
-
-    addr = (uint32_t)&Boot_Jump_Handler;
-
-    txBuf[0] = BOOT_CAN_CMD_0_JUMP;
-    txBuf[1] = canRxBuffer[1];
-
-    switch (canRxBuffer[1])
-    {
-        case BOOT_CAN_CMD_1_BOOT_JUMP:
-
-            /* Already running in Bootloader */
-            if ((addr >= BOOTLOADER_START_ADDRESS) &&
-                (addr <= BOOTLOADER_END_ADDRESS))
-            {
-                txBuf[3] = BOOT_CAN_CMD_3_SUCCESS;
-                CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof(txBuf));
-                break;
-            }
-
-            /* Set boot flag and reset */
-            W_BOOT_FLAG = 1.0f;
-
-            __builtin_memset(eepromBuffer, 0xFF, EEPROM_DATA_SIZE);
-            __builtin_memcpy(eepromBuffer, writeMatrix, sizeof(writeMatrix));
-
-            if (FLASH_EEPROM_Write_Page(eepromBuffer,
-                                        sizeof(writeMatrix)) == FLASH_EEPROM_OK)
-            {
-                asm("reset");
-            }
-            break;
-
-        case BOOT_CAN_CMD_1_APP_JUMP:
-
-            /* Already running in Application */
-            if ((addr >= APPLICATION_START_ADDRESS) &&
-                (addr <= APPLICATION_END_ADDRESS))
-            {
-                txBuf[3] = BOOT_CAN_CMD_3_SUCCESS;
-                CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof(txBuf));
-                break;
-            }
-
-            /* Jump to Application */
-            if (Boot_Is_App_Present() == true)
-            {
-                Boot_App_Jump();
-            }
-            break;
-
-        default:
-            break;
-    }
-}
-
-void Boot_App_Erase_Handler(void)
-{
-    uint8_t txBuf[8] = {0};
     uint32_t address;
 
-    if (canRxBuffer[0] != BOOT_CAN_CMD_0_APP_ERASE)
-    {
-        return;
-    }
-
-    txBuf[0] = BOOT_CAN_CMD_0_APP_ERASE;
-
-    /* Erase complete application region */
     for (address = APPLICATION_START_ADDRESS;
          address <= APPLICATION_END_ADDRESS;
          address += BOOT_FLASH_PAGE_SIZE)
@@ -442,9 +126,7 @@ void Boot_App_Erase_Handler(void)
 
         if (!NVM_PageErase(address))
         {
-            txBuf[3] = BOOT_CAN_CMD_3_FAIL;
-            CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof(txBuf));
-            return;
+            return false;
         }
 
         while (NVM_IsBusy())
@@ -452,22 +134,43 @@ void Boot_App_Erase_Handler(void)
         }
     }
 
-    /* Verify erased flash */
+    return true;
+}
+
+bool App_Erase_Verify(void)
+{
+    uint32_t address;
+
     for (address = APPLICATION_START_ADDRESS;
          address <= APPLICATION_END_ADDRESS;
          address += 4U)
     {
         if (*(volatile const uint32_t *)address != 0xFFFFFFFFUL)
         {
-            txBuf[3] = BOOT_CAN_CMD_3_FAIL;
-            CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof(txBuf));
-            return;
+            return false;
         }
     }
 
-    /* Erase successful */
-    txBuf[3] = BOOT_CAN_CMD_3_SUCCESS;
-    CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof(txBuf));
+    return true;
+}
+
+void App_Erase_Success(void)
+{
+    uint8_t resp = (uint8_t)CMD_RESP_FLASH_READY;
+    static int ctr = 0;
+
+    for (ctr = 0; ctr <= 2000000; ctr++)
+    {
+    }
+
+    CANbus_write(CANID_MCU_RESP, &resp, sizeof(resp));
+}
+
+static void App_Update_End_Success(void)
+{
+    uint8_t response[8] = {0U};
+
+    CANbus_write(CANID_RESP_END, response, sizeof(response));
 }
 
 static bool App_Firmware_Write_Flash(void)
@@ -625,87 +328,162 @@ void App_Firmware_Write_Buffer(uint8_t *rxBuffer)
     }
 }
 
-void Run_Boot_Handler(uint8_t *rxBuffer)
+bool Is_App_Present(void)
 {
-    memcpy(canRxBuffer, rxBuffer, sizeof(canRxBuffer));
+    uint32_t appEntry;
 
-    switch (canRxBuffer[0])
+    appEntry = *(volatile const uint32_t *)APPLICATION_START_ADDRESS;
+
+    if ((appEntry == 0xFFFFFFFFUL) || (appEntry == 0x00000000UL))
     {
-        case BOOT_CAN_CMD_0_PIC_ID:
-            Boot_PIC_ID_Handler();
+        return false;
+    }
+
+    if ((appEntry < APPLICATION_START_ADDRESS) ||
+        (appEntry > APPLICATION_END_ADDRESS))
+    {
+        return false;
+    }
+
+    return true;
+}
+
+void App_Jump(void)
+{
+    APP_ENTRY_FUNC appEntry;
+    uint32_t appEntryAddress;
+
+    if (Is_App_Present() == false)
+    {
+        return;
+    }
+
+    appEntryAddress = *(volatile const uint32_t *)APPLICATION_START_ADDRESS;
+    appEntry = (APP_ENTRY_FUNC)appEntryAddress;
+
+    /* Disable Global Interrupts */
+    (void)__builtin_disable_interrupts();
+
+    /* Disable all Interrupt Sources */
+    IEC0 = 0;
+    IEC1 = 0;
+    IEC2 = 0;
+    IEC3 = 0;
+
+    /* Clear Pending Interrupt Flags */
+    IFS0 = 0;
+    IFS1 = 0;
+    IFS2 = 0;
+    IFS3 = 0;
+
+    __builtin_setIVTBASE((void *)0x808040);
+
+    /* Jump to application's reset entry */
+    appEntry();
+
+    while (1)
+    {
+        /* Should never return */
+    }
+}
+
+void Run_Boot_Handler(uint32_t ID, uint8_t *rxBuffer)
+{
+    switch (ID)
+    {
+        case CANID_REQ_PICID_1:
+            Send_PICID_1();
             break;
 
-        case BOOT_CAN_CMD_0_SOFTWARE_ID:
-            Boot_Software_ID_Handler();
+        case CANID_REQ_PICID_2:
+            Send_PICID_2();
             break;
 
-        case BOOT_CAN_CMD_0_STATUS:
-            Boot_Status_Handler();
+        case CANID_REQ_SOFTWARE_ID:
+            Send_Software_ID();
             break;
 
-        case BOOT_CAN_CMD_0_APP_SIZE:
-            Boot_App_Size_Handler();
+        case CANID_SCU_REQ:
+
+            switch (rxBuffer[0])
+            {
+                case CMD_REQ_STATUS:
+                    Boot_Status();
+                    break;
+
+                case CMD_REQ_BOOTLOADER:
+                    Boot_Jump_Success();
+                    break;
+
+                case CMD_REQ_START:
+                    flashWriteAddress = APPLICATION_START_ADDRESS;
+                    flashBufferIndex = 0;
+                    firmwareUpdateActive = false;
+                    firmwareUpdateFailed = false;
+                    firmwareImageReady = false;
+
+                    __builtin_memset(
+                        flashBuffer,
+                        0xFF,
+                        sizeof(flashBuffer));
+
+                    if (App_Erase())
+                    {
+                        if (App_Erase_Verify())
+                        {
+                            firmwareUpdateActive = true;
+                            App_Erase_Success();
+                        }
+                    }
+                    break;
+
+                case CMD_REQ_DATA:
+                    App_Firmware_Write_Buffer(rxBuffer);
+                    break;
+
+                case CMD_REQ_APP_JUMP:
+                    if (firmwareImageReady && !firmwareUpdateFailed &&
+                        (flashBufferIndex > 0U))
+                    {
+                        if (!App_Firmware_Write_Flash())
+                        {
+                            firmwareUpdateFailed = true;
+                            break;
+                        }
+                    }
+
+                    if (firmwareImageReady && !firmwareUpdateFailed)
+                    {
+                        firmwareUpdateActive = false;
+                        App_Jump();
+                    }
+                    break;
+
+                default:
+                    break;
+            }
             break;
 
-        case BOOT_CAN_CMD_0_JUMP:
-            Boot_Jump_Handler();
-            break;
-        
-        case BOOT_CAN_CMD_0_APP_ERASE:
-            flashWriteAddress = APPLICATION_START_ADDRESS;
-            flashBufferIndex = 0;
+        case CANID_REQ_END:
+            if (firmwareUpdateActive && !firmwareUpdateFailed &&
+                (flashBufferIndex > 0U))
+            {
+                if (!App_Firmware_Write_Flash())
+                {
+                    firmwareUpdateFailed = true;
+                }
+            }
+
+            firmwareImageReady = firmwareUpdateActive && !firmwareUpdateFailed;
             firmwareUpdateActive = false;
-            firmwareUpdateFailed = false;
-            firmwareImageReady = false;
 
-            __builtin_memset(
-                flashBuffer,
-                0xFF,
-                sizeof(flashBuffer));
-                
-            Boot_App_Erase_Handler();
+            if (firmwareImageReady)
+            {
+                App_Update_End_Success();
+            }
             break;
 
-        case CMD_REQ_DATA:
-            App_Firmware_Write_Buffer(rxBuffer);
+        default:
             break;
-
-        // case CMD_REQ_APP_JUMP:
-        //     if (firmwareImageReady && !firmwareUpdateFailed &&
-        //         (flashBufferIndex > 0U))
-        //     {
-        //         if (!App_Firmware_Write_Flash())
-        //         {
-        //             firmwareUpdateFailed = true;
-        //             break;
-        //         }
-        //     }
-
-        //     if (firmwareImageReady && !firmwareUpdateFailed)
-        //     {
-        //         firmwareUpdateActive = false;
-        //         App_Jump();
-        //     }
-        //     break;
-
-        // case CANID_REQ_END:
-        //     if (firmwareUpdateActive && !firmwareUpdateFailed &&
-        //         (flashBufferIndex > 0U))
-        //     {
-        //         if (!App_Firmware_Write_Flash())
-        //         {
-        //             firmwareUpdateFailed = true;
-        //         }
-        //     }
-
-        //     firmwareImageReady = firmwareUpdateActive && !firmwareUpdateFailed;
-        //     firmwareUpdateActive = false;
-
-        //     if (firmwareImageReady)
-        //     {
-        //         App_Update_End_Success();
-        //     }
-        //     break;
-
     }
 }
