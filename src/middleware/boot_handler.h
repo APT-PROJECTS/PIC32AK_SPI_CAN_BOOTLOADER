@@ -125,10 +125,9 @@ typedef enum {
 /* =====================================================
  * API
  * ===================================================== */
-void Send_PICID_1(void);
-void Send_PICID_2(void);
-void Send_Software_ID(void);
-void Boot_Status(void);
+void Boot_PIC_ID_Handler(void);
+void Boot_Software_ID_Handler(void);
+void Boot_Status_Handler(void);
 void Boot_Jump_Success(void);
 bool App_Erase(void);
 bool App_Erase_Verify(void);
