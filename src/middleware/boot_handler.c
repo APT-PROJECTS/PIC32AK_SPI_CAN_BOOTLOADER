@@ -198,6 +198,94 @@ void Boot_Status_Handler(void)
     }
 }
 
+void Boot_App_Size_Handler(void)
+{
+    uint8_t txBuf[8] = {0};
+    uint32_t firmwareSize;
+    uint32_t maxAppSize;
+
+    if (canRxBuffer[0] != BOOT_CAN_CMD_0_APP_SIZE)
+    {
+        return;
+    }
+
+    switch (canRxBuffer[2])
+    {
+        /*----------------------- COMPARE -------------------------*/
+        case BOOT_CAN_CMD_2_COMPARE:
+
+            /* Extract firmware size (bytes) from CAN bytes 4-7 */
+            firmwareSize = ((uint32_t)canRxBuffer[4] << 24) |
+                           ((uint32_t)canRxBuffer[5] << 16) |
+                           ((uint32_t)canRxBuffer[6] << 8)  |
+                           ((uint32_t)canRxBuffer[7]);
+
+            /* Maximum allowed firmware size = Application partition - 4 KB */
+            maxAppSize = (APPLICATION_END_ADDRESS - APPLICATION_START_ADDRESS + 1U) - (4U * 1024U);
+
+            txBuf[0] = BOOT_CAN_CMD_0_APP_SIZE;
+            txBuf[2] = BOOT_CAN_CMD_2_COMPARE;
+
+            if (firmwareSize < maxAppSize)
+            {
+                txBuf[3] = BOOT_CAN_CMD_3_SUCCESS;
+            }
+            else
+            {
+                txBuf[3] = BOOT_CAN_CMD_3_FAIL;
+            }
+
+            CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof(txBuf));
+            break;
+
+        /*------------------------- READ --------------------------*/
+        case BOOT_CAN_CMD_2_READ:
+
+            firmwareSize = (uint32_t)R_APP_SIZE;
+
+            txBuf[0] = BOOT_CAN_CMD_0_APP_SIZE;
+            txBuf[2] = BOOT_CAN_CMD_2_READ;
+            txBuf[3] = 0x00;
+
+            txBuf[4] = (uint8_t)(firmwareSize >> 24);
+            txBuf[5] = (uint8_t)(firmwareSize >> 16);
+            txBuf[6] = (uint8_t)(firmwareSize >> 8);
+            txBuf[7] = (uint8_t)(firmwareSize);
+
+            CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof(txBuf));
+            break;
+
+        /*------------------------- WRITE -------------------------*/
+        case BOOT_CAN_CMD_2_WRITE:
+
+            W_APP_SIZE = ((uint32_t)canRxBuffer[4] << 24) |
+                         ((uint32_t)canRxBuffer[5] << 16) |
+                         ((uint32_t)canRxBuffer[6] << 8)  |
+                         ((uint32_t)canRxBuffer[7]);
+
+            memset(eepromBuffer, 0xFF, EEPROM_DATA_SIZE);
+            memcpy(eepromBuffer, writeMatrix, sizeof(writeMatrix));
+
+            txBuf[0] = BOOT_CAN_CMD_0_APP_SIZE;
+            txBuf[2] = BOOT_CAN_CMD_2_WRITE;
+
+            if (FLASH_EEPROM_Write_Page(eepromBuffer, sizeof(writeMatrix)) == FLASH_EEPROM_OK)
+            {
+                txBuf[3] = BOOT_CAN_CMD_3_SUCCESS;
+            }
+            else
+            {
+                txBuf[3] = BOOT_CAN_CMD_3_FAIL;
+            }
+
+            CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof(txBuf));
+            break;
+
+        default:
+            break;
+    }
+}
+
 void Boot_Jump_Success(void)
 {
     uint8_t resp = (uint8_t)CMD_RESP_JUMP_OK;
@@ -503,6 +591,12 @@ void Run_Boot_Handler(uint32_t ID, uint8_t *rxBuffer)
                 case BOOT_CAN_CMD_0_STATUS:
                 {
                     Boot_Status_Handler();
+                    break;
+                }
+
+                case BOOT_CAN_CMD_0_APP_SIZE:
+                {
+                    Boot_App_Size_Handler();
                     break;
                 }
                     

@@ -128,6 +128,7 @@ typedef enum {
 void Boot_PIC_ID_Handler(void);
 void Boot_Software_ID_Handler(void);
 void Boot_Status_Handler(void);
+void Boot_App_Size_Handler(void);
 void Boot_Jump_Success(void);
 bool App_Erase(void);
 bool App_Erase_Verify(void);

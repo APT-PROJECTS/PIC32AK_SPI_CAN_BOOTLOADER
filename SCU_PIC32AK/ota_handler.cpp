@@ -211,13 +211,18 @@ void OTA_Handler_CORE0(const uint8_t *mac) {
         }
 
         uint8_t buffer[256];
+        size_t downloadedBytes = 0;
 
         while (http.connected() && (len > 0 || len == -1)) {
           size_t available = stream->available();
           if (available) {
             int toRead = min((int)available, (int)sizeof(buffer));
             int readBytes = stream->readBytes(buffer, toRead);
-            fw.write(buffer, readBytes);
+            if ((readBytes <= 0) || (fw.write(buffer, readBytes) != (size_t)readBytes)) {
+              Serial.println("OTA CORE0: Firmware file write failed");
+              break;
+            }
+            downloadedBytes += (size_t)readBytes;
             if (len > 0) len -= readBytes;
           }
           delay(1);  // yield to RTOS
@@ -226,9 +231,16 @@ void OTA_Handler_CORE0(const uint8_t *mac) {
         fw.close();
         http.end();
 
+        if ((downloadedBytes == 0U) || (len > 0)) {
+          Serial.println("OTA CORE0: Firmware download incomplete");
+          SPIFFS.remove(filePath);
+          break;
+        }
+
+        Serial.printf("OTA CORE0: Firmware saved to SPIFFS (%u bytes)\n", downloadedBytes);
+        totalFWSize = downloadedBytes;
         isBinFileDownloaded = true;
 
-        Serial.println("OTA CORE0: Firmware saved to SPIFFS");
         otaCore0State = OTA_CORE0_REPORT;
         break;
       }
@@ -460,14 +472,43 @@ bool OTA_Handler_CORE1(void) {
       }
       break;
 
-      // ==================================================
-    case OTA_CORE1_SEND_BOOT_JMP_REQ:
+    // ==================================================
+    case OTA_CORE1_COMPARE_APP_SIZE:
       {
+        uint8_t txBuf[8] = { 0 };
+
         if (!isBinFileDownloaded) {
           // Firmware not ready yet → wait here
           break;
         }
 
+        txBuf[0] = OTA_CAN_CMD_0_APP_SIZE;
+        txBuf[2] = OTA_CAN_CMD_2_COMPARE;
+
+        /* Send firmware size in bytes */
+        uint32_t appSize = (uint32_t)totalFWSize;
+
+        txBuf[4] = (uint8_t)(appSize >> 24);
+        txBuf[5] = (uint8_t)(appSize >> 16);
+        txBuf[6] = (uint8_t)(appSize >> 8);
+        txBuf[7] = (uint8_t)(appSize);
+
+        if (!CAN_WriteFrame(OTA_CAN_ID_HOST, txBuf, sizeof(txBuf))) {
+          Serial.println("OTA CORE1: APP SIZE send failed");
+          break;
+        }
+
+        Serial.printf("OTA CORE1: APP Size = %lu bytes\n", appSize);
+
+        otaPrevTxState = otaCore1State;
+        otaRxStartTime = millis();
+        otaCore1State = OTA_CORE1_CAN_RX_HANDLE;
+      }
+      break;
+
+      // ==================================================
+    case OTA_CORE1_SEND_BOOT_JMP_REQ:
+      {
         uint8_t tx[8] = { 0 };
 
         mcuUpdateStarted = true;
@@ -711,81 +752,6 @@ bool OTA_Handler_CORE1(void) {
 
           switch (rx.identifier) {
 
-              /* ---------- SOFTWARE ID ---------- */
-            case CANID_RESP_SOFTWARE_ID:
-              {
-                otaValidRx = true;
-
-                uint16_t mcu_oem_id =
-                  ((uint16_t)rx.data[0] << 8) | (uint16_t)rx.data[1];
-
-                uint16_t mcu_application_id =
-                  ((uint16_t)rx.data[2] << 8) | (uint16_t)rx.data[3];
-
-                /* -------- NEW MCU CHECK -------- */
-                bool newMCU = (mcu_oem_id == 0x0000 && mcu_application_id == 0x0000);
-
-                /* -------- OEM ID CHECK -------- */
-                if (!newMCU && mcu_oem_id != OEM_ID) {
-                  Serial.println("OTA CORE1: OEM ID mismatch");
-
-                  sendReport = true;
-                  otaReportStatus = OEM_ID_MISMATCH;
-
-                  otaCore1State = OTA_CORE1_ERROR;
-                  otaCore0State = OTA_CORE0_REPORT;
-                  break;
-                }
-
-                /* -------- APPLICATION ID CHECK -------- */
-                if (!newMCU && mcu_application_id != APPLICATION_ID) {
-                  Serial.println("OTA CORE1: APPLICATION ID mismatch");
-
-                  sendReport = true;
-                  otaReportStatus = APPLICATION_ID_MISMATCH;
-
-                  otaCore1State = OTA_CORE1_ERROR;
-                  otaCore0State = OTA_CORE0_REPORT;
-                  break;
-                }
-
-                /* -------- VERSION (16-bit) -------- */
-                mcu_major_previous =
-                  ((uint16_t)rx.data[4] << 8) | (uint16_t)rx.data[5];
-
-                mcu_minor_previous =
-                  ((uint16_t)rx.data[6] << 8) | (uint16_t)rx.data[7];
-
-                Serial.printf(
-                  "OTA CORE1: MCU %u.%u | Server %u.%u\n",
-                  mcu_major_previous, mcu_minor_previous,
-                  ota_server_major, ota_server_minor);
-
-                /* -------- VERSION CHECK -------- */
-                if ((mcu_major_previous > ota_server_major) || (mcu_major_previous == ota_server_major && mcu_minor_previous >= ota_server_minor)) {
-
-                  Serial.println("OTA CORE1: OTA NOT required");
-
-                  sendReport = true;
-
-                  mcu_major_latest = ota_server_major;
-                  mcu_minor_latest = ota_server_minor;
-
-                  otaReportStatus = ALREADY_UPDATED;
-
-                  otaCore1State = OTA_CORE1_DONE;
-                  otaCore0State = OTA_CORE0_REPORT;
-
-                  return false;
-                }
-
-                downloadBinFile = true;
-                Serial.println("OTA CORE1: OTA REQUIRED");
-
-                otaCore1State = OTA_CORE1_SEND_BOOT_JMP_REQ;
-                break;
-              }
-
             case OTA_CAN_ID_CLIENT:
               {
                 switch (rx.data[0]) {
@@ -921,7 +887,43 @@ bool OTA_Handler_CORE1(void) {
                                   downloadBinFile = true;
                                   Serial.println("OTA CORE1: OTA REQUIRED");
 
+                                  otaCore1State = OTA_CORE1_COMPARE_APP_SIZE;
+                                }
+                                break;
+
+                              default:
+                                break;
+                            }
+                          }
+                          break;
+
+                        default:
+                          break;
+                      }
+                    }
+                    break;
+
+                  case OTA_CAN_CMD_0_APP_SIZE:
+                    {
+                      switch (rx.data[2]) {
+                        case OTA_CAN_CMD_2_COMPARE:
+                          {
+                            switch (rx.data[3]) {
+                              case OTA_CAN_CMD_3_SUCCESS:
+                                {
+                                  Serial.println("OTA CORE1: APP SIZE SUCCESS");
                                   otaCore1State = OTA_CORE1_SEND_BOOT_JMP_REQ;
+                                }
+                                break;
+
+                              case OTA_CAN_CMD_3_FAIL:
+                                {
+                                  Serial.println("OTA CORE1: APP SIZE FAIL");
+                                  sendReport = true;
+                                  otaReportStatus = APP_SIZE_EXCEED;
+
+                                  otaCore1State = OTA_CORE1_ERROR;
+                                  otaCore0State = OTA_CORE0_REPORT;
                                 }
                                 break;
 
