@@ -356,9 +356,11 @@ bool OTA_Handler_CORE1(void) {
         txBuf[2] = OTA_CAN_CMD_2_READ;
 
         if (!CAN_WriteFrame(OTA_CAN_ID_HOST, txBuf, sizeof(txBuf))) {
-          Serial.println("OTA CORE1: CAN send failed (PICID_1)");
+          Serial.println("OTA CORE1: PICID_1 REQUEST SEND FAIL");
           break;
         }
+
+        Serial.println("OTA CORE1: PICID_1 REQUEST SEND SUCCESS");
 
         otaPrevTxState = otaCore1State;
         otaRxStartTime = millis();
@@ -376,9 +378,11 @@ bool OTA_Handler_CORE1(void) {
         txBuf[2] = OTA_CAN_CMD_2_READ;
 
         if (!CAN_WriteFrame(OTA_CAN_ID_HOST, txBuf, sizeof(txBuf))) {
-          Serial.println("OTA CORE1: CAN send failed (PICID_2)");
+          Serial.println("OTA CORE1: PICID_2 REQUEST SEND FAIL");
           break;
         }
+
+        Serial.println("OTA CORE1: PICID_2 REQUEST SEND SUCCESS");
 
         otaPrevTxState = otaCore1State;
         otaRxStartTime = millis();
@@ -396,9 +400,11 @@ bool OTA_Handler_CORE1(void) {
         txBuf[2] = OTA_CAN_CMD_2_READ;
 
         if (!CAN_WriteFrame(OTA_CAN_ID_HOST, txBuf, sizeof(txBuf))) {
-          Serial.println("OTA CORE1: CAN send failed (PICID_3)");
+          Serial.println("OTA CORE1: PICID_3 REQUEST SEND FAIL");
           break;
         }
+
+        Serial.println("OTA CORE1: PICID_3 REQUEST SEND SUCCESS");
 
         otaPrevTxState = otaCore1State;
         otaRxStartTime = millis();
@@ -416,9 +422,11 @@ bool OTA_Handler_CORE1(void) {
         txBuf[2] = OTA_CAN_CMD_2_READ;
 
         if (!CAN_WriteFrame(OTA_CAN_ID_HOST, txBuf, sizeof(txBuf))) {
-          Serial.println("OTA CORE1: CAN send failed (PICID_4)");
+          Serial.println("OTA CORE1: PICID_4 REQUEST SEND FAIL");
           break;
         }
+
+        Serial.println("OTA CORE1: PICID_4 REQUEST SEND SUCCESS");
 
         otaPrevTxState = otaCore1State;
         otaRxStartTime = millis();
@@ -436,10 +444,12 @@ bool OTA_Handler_CORE1(void) {
         txBuf[2] = OTA_CAN_CMD_2_READ;
 
         if (!CAN_WriteFrame(OTA_CAN_ID_HOST, txBuf, 8)) {
-          Serial.println("OTA CORE1: CAN send failed (PROJECT_ID)");
+          Serial.println("OTA CORE1: PROJECT_ID REQUEST SEND FAIL");
           // otaCore1State = OTA_CORE1_ERROR;
           break;
         }
+
+        Serial.println("OTA CORE1: PROJECT_ID REQUEST SEND SUCCESS");
 
         otaPrevTxState = otaCore1State;
         otaRxStartTime = millis();
@@ -457,10 +467,12 @@ bool OTA_Handler_CORE1(void) {
         txBuf[2] = OTA_CAN_CMD_2_READ;
 
         if (!CAN_WriteFrame(OTA_CAN_ID_HOST, txBuf, 8)) {
-          Serial.println("OTA CORE1: CAN send failed (FIRMWARE_ID)");
+          Serial.println("OTA CORE1: FIRMWARE_ID REQUEST SEND FAIL");
           // otaCore1State = OTA_CORE1_ERROR;
           break;
         }
+
+        Serial.println("OTA CORE1: FIRMWARE_ID REQUEST SEND SUCCESS");
 
         otaPrevTxState = otaCore1State;
         otaRxStartTime = millis();
@@ -490,7 +502,7 @@ bool OTA_Handler_CORE1(void) {
         txBuf[7] = (uint8_t)(appSize);
 
         if (!CAN_WriteFrame(OTA_CAN_ID_HOST, txBuf, sizeof(txBuf))) {
-          Serial.println("OTA CORE1: APP SIZE send failed");
+          Serial.println("OTA CORE1: APP SIZE SEND FAIL");
           break;
         }
 
@@ -547,7 +559,7 @@ bool OTA_Handler_CORE1(void) {
       break;
 
       // ==================================================
-    case OTA_CORE1_SEND_DATA:
+    case OTA_CORE1_SEND_APP_CHUNK:
       {
         uint8_t txBuf[8] = { 0U };
 
@@ -575,7 +587,7 @@ bool OTA_Handler_CORE1(void) {
         if ((bytesSentInChunk == 0U) && (totalSent >= totalFWSize)) {
           fwFile.close();
           Serial.println("OTA CORE1: All application chunks acknowledged");
-          otaCore1State = OTA_CORE1_SEND_END_REQ;
+          otaCore1State = OTA_CORE1_UPDATE_PROJECT_ID;
           break;
         }
 
@@ -588,7 +600,7 @@ bool OTA_Handler_CORE1(void) {
             Serial.println("OTA CORE1: SPIFFS read failed");
             fwFile.close();
             sendReport = true;
-            otaReportStatus = FIRMWARE_UPLOAD_FAILED;
+            otaReportStatus = FIRMWARE_UPLOAD_FAIL;
             otaCore1State = OTA_CORE1_ERROR;
             otaCore0State = OTA_CORE0_REPORT;
             break;
@@ -622,46 +634,61 @@ bool OTA_Handler_CORE1(void) {
       }
 
       // ==================================================
-    case OTA_CORE1_SEND_END_REQ:
+    case OTA_CORE1_UPDATE_PROJECT_ID:
       {
-        uint8_t tx[8];
+        uint8_t txBuf[8] = { 0U };
 
-        // ---- OEM ID ----
-        tx[0] = (OEM_ID >> 8) & 0xFF;
-        tx[1] = OEM_ID & 0xFF;
+        float projectId = (float)OEM_ID + ((float)APPLICATION_ID / 10.0f);
 
-        // ---- APPLICATION ID ----
-        tx[2] = (APPLICATION_ID >> 8) & 0xFF;
-        tx[3] = APPLICATION_ID & 0xFF;
+        txBuf[0] = OTA_CAN_CMD_0_SOFTWARE_ID;
+        txBuf[1] = OTA_CAN_CMD_1_PROJECT_ID;
+        txBuf[2] = OTA_CAN_CMD_2_WRITE;
 
-        // ---- OTA VERSION MAJOR ----
-        tx[4] = (ota_server_major >> 8) & 0xFF;
-        tx[5] = ota_server_major & 0xFF;
+        /* Copy IEEE-754 float (little-endian on ESP32) */
+        memcpy(&txBuf[4], &projectId, sizeof(float));
 
-        // ---- OTA VERSION MINOR ----
-        tx[6] = (ota_server_minor >> 8) & 0xFF;
-        tx[7] = ota_server_minor & 0xFF;
-
-        if (!CAN_WriteFrame(CANID_REQ_END, tx, 8)) {
-          Serial.println("OTA CORE1: END request send failed");
+        if (!CAN_WriteFrame(OTA_CAN_ID_HOST, txBuf, sizeof(txBuf))) {
+          Serial.println("OTA CORE1: PROJECT_ID SEND FAIL");
           break;
         }
 
-        Serial.printf(
-          "OTA CORE1: END sent (OEM:%u APP:%u VER:%u.%u)\n",
-          OEM_ID,
-          APPLICATION_ID,
-          ota_server_major,
-          ota_server_minor);
+        Serial.printf("OTA CORE1: PROJECT_ID %.1f SEND SUCCESS\n", projectId);
 
         otaPrevTxState = otaCore1State;
         otaRxStartTime = millis();
         otaCore1State = OTA_CORE1_CAN_RX_HANDLE;
-        break;
       }
+      break;
 
       // ==================================================
-    case OTA_CORE1_APP_JMP_REQ:
+    case OTA_CORE1_UPDATE_FIRMWARE_ID:
+      {
+        uint8_t txBuf[8] = { 0U };
+
+        float firmwareId = (float)ota_server_major + ((float)ota_server_minor / 10.0f);
+
+        txBuf[0] = OTA_CAN_CMD_0_SOFTWARE_ID;
+        txBuf[1] = OTA_CAN_CMD_1_FIRMWARE_ID;
+        txBuf[2] = OTA_CAN_CMD_2_WRITE;
+
+        /* Copy IEEE-754 float (little-endian on ESP32) */
+        memcpy(&txBuf[4], &firmwareId, sizeof(float));
+
+        if (!CAN_WriteFrame(OTA_CAN_ID_HOST, txBuf, sizeof(txBuf))) {
+          Serial.println("OTA CORE1: FIRMWARE_ID SEND FAIL");
+          break;
+        }
+
+        Serial.printf("OTA CORE1: FIRMWARE_ID %.1f SEND SUCCESS\n", firmwareId);
+
+        otaPrevTxState = otaCore1State;
+        otaRxStartTime = millis();
+        otaCore1State = OTA_CORE1_CAN_RX_HANDLE;
+      }
+      break;
+
+      // ==================================================
+    case OTA_CORE1_APP_JUMP:
       {
         uint8_t txBuf[8] = { 0 };
         txBuf[0] = OTA_CAN_CMD_0_JUMP;
@@ -843,6 +870,72 @@ bool OTA_Handler_CORE1(void) {
                           }
                           break;
 
+                        case OTA_CAN_CMD_2_WRITE:
+                          {
+                            switch (rx.data[1]) {
+                              case OTA_CAN_CMD_1_PROJECT_ID:
+                                {
+                                  switch (rx.data[3]) {
+                                    case OTA_CAN_CMD_3_SUCCESS:
+                                      {
+                                        Serial.println("OTA CORE1: PROJECT_ID UPDATE SUCCESS");
+                                        otaCore1State = OTA_CORE1_UPDATE_FIRMWARE_ID;
+                                      }
+                                      break;
+
+                                    case OTA_CAN_CMD_3_FAIL:
+                                      {
+                                        Serial.println("OTA CORE1: PROJECT_ID UPDATE FAIL");
+                                        sendReport = true;
+                                        otaReportStatus = SOFTWARE_ID_UPDATE_FAIL;
+
+                                        otaCore1State = OTA_CORE1_ERROR;
+                                        otaCore0State = OTA_CORE0_REPORT;
+                                      }
+                                      break;
+
+                                    default:
+                                      break;
+                                  }
+                                }
+                                break;
+
+                              case OTA_CAN_CMD_1_FIRMWARE_ID:
+                                {
+                                  switch (rx.data[3]) {
+                                    case OTA_CAN_CMD_3_SUCCESS:
+                                      {
+                                        mcu_major_latest = ota_server_major;
+                                        mcu_minor_latest = ota_server_minor;
+
+                                        Serial.println("OTA CORE1: FIRMWARE_ID UPDATE SUCCESS");
+                                        otaCore1State = OTA_CORE1_APP_JUMP;
+                                      }
+                                      break;
+
+                                    case OTA_CAN_CMD_3_FAIL:
+                                      {
+                                        Serial.println("OTA CORE1: FIRMWARE_ID UPDATE FAIL");
+                                        sendReport = true;
+                                        otaReportStatus = SOFTWARE_ID_UPDATE_FAIL;
+
+                                        otaCore1State = OTA_CORE1_ERROR;
+                                        otaCore0State = OTA_CORE0_REPORT;
+                                      }
+                                      break;
+
+                                    default:
+                                      break;
+                                  }
+                                }
+                                break;
+
+                              default:
+                                break;
+                            }
+                          }
+                          break;
+
                         default:
                           break;
                       }
@@ -958,7 +1051,7 @@ bool OTA_Handler_CORE1(void) {
                         case OTA_CAN_CMD_3_SUCCESS:
                           {
                             Serial.println("OTA CORE1: APP ERASE SUCCESS");
-                            otaCore1State = OTA_CORE1_SEND_DATA;
+                            otaCore1State = OTA_CORE1_SEND_APP_CHUNK;
                           }
                           break;
 
@@ -991,12 +1084,12 @@ bool OTA_Handler_CORE1(void) {
                         chunkIndex = (chunkIndex == 0xFFU) ? 1U : (uint8_t)(chunkIndex + 1U);
                         bytesSentInChunk = 0U;
                         waitingChunkAck = false;
-                        otaCore1State = OTA_CORE1_SEND_DATA;
+                        otaCore1State = OTA_CORE1_SEND_APP_CHUNK;
                       } else if (rx.data[3] == OTA_CAN_CMD_3_FAIL) {
                         Serial.printf("OTA CORE1: APP chunk %u rejected by bootloader\n",
                                       chunkIndex);
                         sendReport = true;
-                        otaReportStatus = FIRMWARE_UPLOAD_FAILED;
+                        otaReportStatus = FIRMWARE_UPLOAD_FAIL;
                         otaCore1State = OTA_CORE1_ERROR;
                         otaCore0State = OTA_CORE0_REPORT;
                       }
@@ -1006,15 +1099,6 @@ bool OTA_Handler_CORE1(void) {
                   default:
                     break;
                 }
-              }
-              break;
-
-            case CANID_RESP_END:
-              {
-                mcu_major_latest = ota_server_major;
-                mcu_minor_latest = ota_server_minor;
-                Serial.println("OTA CORE1: UPDATE SUCCESS received");
-                otaCore1State = OTA_CORE1_APP_JMP_REQ;
               }
               break;
 
@@ -1053,7 +1137,7 @@ bool OTA_Handler_CORE1(void) {
                   Serial.println("OTA CORE1: FAILED TO GET PIC ID");
 
                   sendReport = true;
-                  otaReportStatus = FAILED_TO_GET_PICID;
+                  otaReportStatus = FAILED_TO_GET_PIC_ID;
 
                   otaCore1State = OTA_CORE1_ERROR;
                   otaCore0State = OTA_CORE0_REPORT;
@@ -1109,29 +1193,41 @@ bool OTA_Handler_CORE1(void) {
                 }
                 break;
 
-              case OTA_CORE1_SEND_DATA:
+              case OTA_CORE1_SEND_APP_CHUNK:
                 {
                   Serial.println("OTA CORE1: FIRMWARE UPLOAD FAILED");
 
                   sendReport = true;
-                  otaReportStatus = FIRMWARE_UPLOAD_FAILED;
+                  otaReportStatus = FIRMWARE_UPLOAD_FAIL;
 
                   otaCore1State = OTA_CORE1_ERROR;
                   otaCore0State = OTA_CORE0_REPORT;
                 }
                 break;
 
-              case OTA_CORE1_SEND_END_REQ:
+              case OTA_CORE1_UPDATE_PROJECT_ID:
+              case OTA_CORE1_UPDATE_FIRMWARE_ID:
                 {
                   Serial.println("OTA CORE1: SOFTWARE ID UPDATE FAILED");
 
                   sendReport = true;
-                  otaReportStatus = SOFTWARE_ID_UPDATE_FAILED;
+                  otaReportStatus = SOFTWARE_ID_UPDATE_FAIL;
 
                   otaCore1State = OTA_CORE1_ERROR;
                   otaCore0State = OTA_CORE0_REPORT;
                 }
                 break;
+
+              case OTA_CORE1_APP_JUMP:
+                {
+                  Serial.println("OTA CORE1: APP JUMP FAIL");
+
+                  sendReport = true;
+                  otaReportStatus = APP_JUMP_FAIL;
+
+                  otaCore1State = OTA_CORE1_ERROR;
+                  otaCore0State = OTA_CORE0_REPORT;
+                }
 
               default:
                 {

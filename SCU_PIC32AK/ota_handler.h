@@ -73,26 +73,18 @@ typedef enum {
 
 
 typedef enum {
-  CANID_REQ_END =                             0xB8      // Update software id(8) = {project id(4) = oem id(2) + app id(2)} + {firmware id(4) = major(2) + minor(2)}
-} CANID_REQ_t;
-
-typedef enum {
-  CANID_RESP_END =                            0xB9    // Software id updated successfully
-} CANID_RESP_t;
-
-typedef enum {
   ALREADY_UPDATED =               0,
   TWO_STEP_SUCCESS =              1,
   THREE_STEP_SUCCESS =            2,
   APPLICATION_ID_MISMATCH =       -1,
   OEM_ID_MISMATCH =               -2,
-  FAILED_TO_GET_PICID =           -3,
+  FAILED_TO_GET_PIC_ID =          -3,
   FAILED_TO_GET_SOFTWARE_ID =     -4,
   APP_SIZE_EXCEED =               -11,
   BOOT_JUMP_FAIL =                -5,
   APP_ERASE_FAIL =                -7,
-  FIRMWARE_UPLOAD_FAILED =        -8,
-  SOFTWARE_ID_UPDATE_FAILED =     -9,
+  FIRMWARE_UPLOAD_FAIL =          -8,
+  SOFTWARE_ID_UPDATE_FAIL =       -9,
   APP_JUMP_FAIL =                 -10
 } OTA_REPORT_t;
 
@@ -122,9 +114,10 @@ typedef enum {
   OTA_CORE1_COMPARE_APP_SIZE,
   OTA_CORE1_BOOT_JUMP,
   OTA_CORE1_APP_ERASE,    
-  OTA_CORE1_SEND_DATA,  
-  OTA_CORE1_SEND_END_REQ,
-  OTA_CORE1_APP_JMP_REQ,
+  OTA_CORE1_SEND_APP_CHUNK,  
+  OTA_CORE1_UPDATE_PROJECT_ID,
+  OTA_CORE1_UPDATE_FIRMWARE_ID,
+  OTA_CORE1_APP_JUMP,
   OTA_CORE1_CAN_RX_HANDLE,
   OTA_CORE1_DONE,
   OTA_CORE1_ERROR
