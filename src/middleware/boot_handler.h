@@ -87,7 +87,6 @@ typedef enum {
   CANID_REQ_PICID_1 =                         0xB0,     // Request PICID UDID0 UDID1
   CANID_REQ_PICID_2 =                         0xB2,     // Request PICID UDID2 UDID3
   CANID_REQ_SOFTWARE_ID =                     0xB4,     // Request software id(8) = {project id(4) = oem id(2) + app id(2)} + {firmware id(4) = major(2) + minor(2)}
-  CANID_SCU_REQ =                             0xB6,     // SCU request id
   CANID_REQ_END =                             0xB8      // Update software id(8) = {project id(4) = oem id(2) + app id(2)} + {firmware id(4) = major(2) + minor(2)}
 } CANID_REQ_t;
 
@@ -109,8 +108,7 @@ typedef enum {
   CMD_REQ_STATUS =                            0x54,       // Request MCU status
   CMD_REQ_BOOTLOADER =                        0x51,       // Jump to bootloader
   CMD_REQ_START =                             0x53,       // Start OTA
-  CMD_REQ_DATA =                              0x52,       // Firmware chunk
-  CMD_REQ_APP_JUMP =                          0x56        // Jump to application
+  CMD_REQ_DATA =                              0x52        // Firmware chunk
 } CMD_REQ_t;
 
 /* =====================================================
@@ -135,8 +133,10 @@ bool Boot_Is_App_Present(void);
 void Boot_App_Jump(void);
 void Boot_Jump_Handler(void);
 void Boot_App_Erase_Handler(void);
+void Boot_App_Chunk_Handler(void);
 static bool App_Firmware_Write_Flash(void);
-void App_Firmware_Write_Buffer(uint8_t *rxBuffer);
+static void Boot_App_Chunk_Ack(uint8_t chunkIndex, uint8_t result);
+static uint8_t Next_Chunk_Index(uint8_t chunkIndex);
 void Run_Boot_Handler(uint32_t ID, uint8_t *rxBuffer);
 
 
@@ -144,4 +144,4 @@ void Run_Boot_Handler(uint32_t ID, uint8_t *rxBuffer);
 }
 #endif
 
-#endif 
+#endif

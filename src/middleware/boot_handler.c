@@ -4,10 +4,10 @@
 #include "../driver/driver_CANbus.h"
 #include "../driver/device_stat.h"
 
-#define FLASH_CHUNK_SIZE    4096U
+#define FLASH_CHUNK_SIZE    1024U
 #define FLASH_ROW_SIZE      (NVM_FLASH_ROWSIZE * sizeof(uint32_t))
 #define BOOT_FLASH_PAGE_SIZE (NVM_FLASH_PAGESIZE * sizeof(uint32_t))
-#define CAN_DATA_SIZE       7U
+#define CAN_DATA_SIZE       4U
 
 static uint8_t flashBuffer[FLASH_CHUNK_SIZE];
 static uint32_t flashBufferIndex = 0;
@@ -15,12 +15,8 @@ static uint32_t flashWriteAddress = APPLICATION_START_ADDRESS;
 static bool firmwareUpdateActive = false;
 static bool firmwareUpdateFailed = false;
 static bool firmwareImageReady = false;
-
-static uint8_t CHUNK_ACK_DATA[8] =
-{
-    0x88, 0x77, 0x66, 0xFF,
-    0x11, 0x22, 0x44, 0x33
-};
+static uint8_t expectedChunkIndex = 1U;
+static uint8_t lastAcceptedChunkIndex = 0U;
 
 static uint8_t canRxBuffer[8] = {0U};
 
@@ -389,20 +385,32 @@ void Boot_Jump_Handler(void)
             break;
 
         case BOOT_CAN_CMD_1_APP_JUMP:
+            /* Finalize an update when the host uses JUMP instead of END. */
+            if (firmwareUpdateActive && !firmwareUpdateFailed &&
+                (flashBufferIndex > 0U))
+            {
+                if (!App_Firmware_Write_Flash())
+                {
+                    firmwareUpdateFailed = true;
+                }
+            }
 
-            /* Already running in Application */
-            if ((addr >= APPLICATION_START_ADDRESS) &&
-                (addr <= APPLICATION_END_ADDRESS))
+            if (firmwareUpdateActive)
+            {
+                firmwareImageReady = !firmwareUpdateFailed;
+                firmwareUpdateActive = false;
+            }
+
+            if (!firmwareUpdateFailed && (Boot_Is_App_Present() == true))
             {
                 txBuf[3] = BOOT_CAN_CMD_3_SUCCESS;
                 CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof(txBuf));
-                break;
-            }
-
-            /* Jump to Application */
-            if (Boot_Is_App_Present() == true)
-            {
                 Boot_App_Jump();
+            }
+            else
+            {
+                txBuf[3] = BOOT_CAN_CMD_3_FAIL;
+                CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof(txBuf));
             }
             break;
 
@@ -421,6 +429,8 @@ void Boot_App_Erase_Handler(void)
     firmwareUpdateActive = false;
     firmwareUpdateFailed = false;
     firmwareImageReady = false;
+    expectedChunkIndex = 1U;
+    lastAcceptedChunkIndex = 0U;
 
     __builtin_memset(flashBuffer, 0xFF, sizeof(flashBuffer));
 
@@ -546,92 +556,69 @@ static bool App_Firmware_Write_Flash(void)
     return true;
 }
 
-void App_Firmware_Write_Buffer(uint8_t *rxBuffer)
+static uint8_t Next_Chunk_Index(uint8_t chunkIndex)
 {
-    uint32_t copyCount;
-    uint32_t remainingBytes;
-    uint32_t payloadOffset;
+    return (chunkIndex == 0xFFU) ? 1U : (uint8_t)(chunkIndex + 1U);
+}
 
-    /* First byte must be 0x52 */
-    if ((!firmwareUpdateActive) || firmwareUpdateFailed ||
-        (rxBuffer[0] != CMD_REQ_DATA))
+static void Boot_App_Chunk_Ack(uint8_t chunkIndex, uint8_t result)
+{
+    uint8_t txBuf[8] = {0U};
+
+    txBuf[0] = BOOT_CAN_CMD_0_APP_CHUNK;
+    txBuf[1] = chunkIndex;
+    txBuf[2] = BOOT_CAN_CMD_2_WRITE;
+    txBuf[3] = result;
+
+    CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof(txBuf));
+}
+
+void Boot_App_Chunk_Handler(void)
+{
+    uint8_t chunkIndex = canRxBuffer[1];
+
+    if ((canRxBuffer[0] != BOOT_CAN_CMD_0_APP_CHUNK) ||
+        (canRxBuffer[2] != BOOT_CAN_CMD_2_WRITE) ||
+        (chunkIndex == 0U) || !firmwareUpdateActive || firmwareUpdateFailed)
+    {
+        Boot_App_Chunk_Ack(chunkIndex, BOOT_CAN_CMD_3_FAIL);
+        return;
+    }
+
+    /* An ACK can be lost. Re-ACK a duplicate without programming it twice. */
+    if (chunkIndex == lastAcceptedChunkIndex)
+    {
+        Boot_App_Chunk_Ack(chunkIndex, BOOT_CAN_CMD_3_SUCCESS);
+        return;
+    }
+
+    if ((chunkIndex != expectedChunkIndex) ||
+        ((flashBufferIndex + CAN_DATA_SIZE) > FLASH_CHUNK_SIZE))
+    {
+        Boot_App_Chunk_Ack(chunkIndex, BOOT_CAN_CMD_3_FAIL);
+        return;
+    }
+
+    memcpy(&flashBuffer[flashBufferIndex], &canRxBuffer[4], CAN_DATA_SIZE);
+    flashBufferIndex += CAN_DATA_SIZE;
+
+    /* One OTA chunk is 256 four-byte frames (1024 bytes). */
+    if (flashBufferIndex < FLASH_CHUNK_SIZE)
     {
         return;
     }
 
-    if (flashBufferIndex + CAN_DATA_SIZE > FLASH_CHUNK_SIZE)
+    if (!App_Firmware_Write_Flash())
     {
-        remainingBytes = FLASH_CHUNK_SIZE - flashBufferIndex;
-
-        if (remainingBytes > 0U)
-        {
-            copyCount = (remainingBytes < CAN_DATA_SIZE)
-                            ? remainingBytes
-                            : CAN_DATA_SIZE;
-
-            memcpy(&flashBuffer[flashBufferIndex], &rxBuffer[1], copyCount);
-            flashBufferIndex += copyCount;
-        }
-
-        if (flashBufferIndex >= FLASH_CHUNK_SIZE)
-        {
-            if (!App_Firmware_Write_Flash())
-            {
-                firmwareUpdateFailed = true;
-                flashBufferIndex = 0U;
-                return;
-            }
-
-            CANbus_write(
-                CANID_MCU_RESP,
-                CHUNK_ACK_DATA,
-                sizeof(CHUNK_ACK_DATA));
-
-            flashBufferIndex = 0U;
-        }
-
-        if (flashBufferIndex < FLASH_CHUNK_SIZE)
-        {
-            payloadOffset = copyCount;
-            copyCount = CAN_DATA_SIZE - payloadOffset;
-
-            if (copyCount > 0U)
-            {
-                memcpy(
-                    &flashBuffer[flashBufferIndex],
-                    &rxBuffer[1 + payloadOffset],
-                    copyCount);
-
-                flashBufferIndex += copyCount;
-            }
-        }
+        firmwareUpdateFailed = true;
+        flashBufferIndex = 0U;
+        Boot_App_Chunk_Ack(chunkIndex, BOOT_CAN_CMD_3_FAIL);
+        return;
     }
-    else
-    {
-        memcpy(
-            &flashBuffer[flashBufferIndex],
-            &rxBuffer[1],
-            CAN_DATA_SIZE);
 
-        flashBufferIndex += CAN_DATA_SIZE;
-
-        if (flashBufferIndex >= FLASH_CHUNK_SIZE)
-        {
-            if (!App_Firmware_Write_Flash())
-            {
-                firmwareUpdateFailed = true;
-                flashBufferIndex = 0U;
-                return;
-            }
-
-            CANbus_write(
-                CANID_MCU_RESP,
-                CHUNK_ACK_DATA,
-                sizeof(CHUNK_ACK_DATA));
-
-            flashBufferIndex = 0U;
-        }
-    }
+    lastAcceptedChunkIndex = chunkIndex;
+    expectedChunkIndex = Next_Chunk_Index(chunkIndex);
+    Boot_App_Chunk_Ack(chunkIndex, BOOT_CAN_CMD_3_SUCCESS);
 }
 
 
@@ -679,43 +666,18 @@ void Run_Boot_Handler(uint32_t ID, uint8_t *rxBuffer)
                     Boot_App_Erase_Handler();
                     break;
                 }
-                    
+
+                case BOOT_CAN_CMD_0_APP_CHUNK:
+                {
+                    Boot_App_Chunk_Handler();
+                    break;
+                }
+
                 default:
                     break;
             }
             break;
         }
-
-        case CANID_SCU_REQ:
-
-            switch (rxBuffer[0])
-            {
-                case CMD_REQ_DATA:
-                    App_Firmware_Write_Buffer(rxBuffer);
-                    break;
-
-                case CMD_REQ_APP_JUMP:
-                    if (firmwareImageReady && !firmwareUpdateFailed &&
-                        (flashBufferIndex > 0U))
-                    {
-                        if (!App_Firmware_Write_Flash())
-                        {
-                            firmwareUpdateFailed = true;
-                            break;
-                        }
-                    }
-
-                    if (firmwareImageReady && !firmwareUpdateFailed)
-                    {
-                        firmwareUpdateActive = false;
-                        // App_Jump();
-                    }
-                    break;
-
-                default:
-                    break;
-            }
-            break;
 
         case CANID_REQ_END:
             if (firmwareUpdateActive && !firmwareUpdateFailed &&

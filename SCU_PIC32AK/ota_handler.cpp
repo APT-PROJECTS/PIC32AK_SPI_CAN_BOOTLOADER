@@ -27,7 +27,6 @@ static bool otaServerVersionUpdated = false;
 static bool downloadBinFile = false;
 static bool isBinFileDownloaded = false;
 static bool mcuUpdateStarted = false;
-static bool waitingChunkAck = false;
 static bool otaValidRx = false;
 static bool sendReport = false;
 
@@ -39,11 +38,9 @@ static File fwFile;
 static size_t fwSize = 0;
 static size_t totalSent = 0;
 
-static size_t chunkIndex = 0;
-static size_t bytesSentInChunk = 0;
-static size_t currentChunkSize = 0;
-/* Bytes already held by the PIC after its most recent 4 KiB ACK. */
-static size_t picBufferedBytes = 0;
+static uint8_t chunkIndex = 1U;
+static size_t bytesSentInChunk = 0U;
+static bool waitingChunkAck = false;
 
 static uint32_t otaRxStartTime = 0;
 
@@ -51,7 +48,6 @@ size_t totalFWSize = 0;
 bool fileOpened = false;
 
 // -----------------INITIAL STATES----------------------
-static MCU_MODE_t mcuMode = MCU_MODE_UNDEFINED;
 static OTA_CORE0_STATE_t otaCore0State = OTA_CORE0_IDLE;
 static OTA_CORE1_State_t otaCore1State = OTA_CORE1_IDLE;
 static OTA_CORE1_State_t otaPrevTxState = OTA_CORE1_IDLE;
@@ -531,26 +527,6 @@ bool OTA_Handler_CORE1(void) {
       break;
 
       // ==================================================
-    case OTA_CORE1_SEND_STATUS_REQ:
-      {
-        uint8_t tx[8] = { 0 };
-        tx[0] = CMD_REQ_STATUS;
-
-        if (!CAN_WriteFrame(CANID_SCU_REQ, tx, 8)) {
-          Serial.println("OTA CORE1: STATUS request send failed");
-          // otaCore1State = OTA_CORE1_ERROR;
-          break;
-        }
-
-        Serial.println("OTA CORE1: STATUS request sent");
-
-        otaPrevTxState = otaCore1State;
-        otaRxStartTime = millis();
-        otaCore1State = OTA_CORE1_CAN_RX_HANDLE;
-        break;
-      }
-
-      // ==================================================
     case OTA_CORE1_APP_ERASE:
       {
         uint8_t txBuf[8] = { 0 };
@@ -573,105 +549,73 @@ bool OTA_Handler_CORE1(void) {
       // ==================================================
     case OTA_CORE1_SEND_DATA:
       {
-        static uint8_t rawData[OTA_FRAME_DATA];
-        static uint8_t txBuf[8];
+        uint8_t txBuf[8] = { 0U };
 
-        // ---------------- OPEN FILE ON FIRST ENTRY ----------------
         if (!fileOpened) {
           fwFile = SPIFFS.open(filePath, FILE_READ);
           if (!fwFile || fwFile.size() == 0) {
             Serial.println("OTA CORE1: Firmware file open failed");
-            // otaCore1State = OTA_CORE1_ERROR;
             break;
           }
 
           totalFWSize = fwFile.size();
           totalSent = 0;
-          chunkIndex = 0;
-          bytesSentInChunk = 0;
-          picBufferedBytes = 0;
+          chunkIndex = 1U;
+          bytesSentInChunk = 0U;
           waitingChunkAck = false;
           fileOpened = true;
 
           Serial.printf("OTA CORE1: Firmware size = %u bytes\n", totalFWSize);
         }
 
-        // A wire chunk is only a flow-control window. It must never add
-        // padding between real firmware bytes.
-        if (!waitingChunkAck && bytesSentInChunk == 0) {
-          if (totalSent >= totalFWSize) {
-            fwFile.close();
-            Serial.println("OTA CORE1: All chunks sent");
-            otaCore1State = OTA_CORE1_SEND_END_REQ;
-            break;
-          }
-
-          Serial.printf(
-            "\n[WINDOW %u] firmware offset %u\n",
-            chunkIndex, totalSent);
+        if (waitingChunkAck) {
+          break;
         }
 
-        // Send one continuous file stream. 0xFF fills only the final CAN
-        // frame; it is never inserted at an ACK/window boundary.
-        if (!waitingChunkAck) {
-          size_t fileBytesRemaining = totalFWSize - totalSent;
-          size_t toRead = min((size_t)OTA_FRAME_DATA, fileBytesRemaining);
+        if ((bytesSentInChunk == 0U) && (totalSent >= totalFWSize)) {
+          fwFile.close();
+          Serial.println("OTA CORE1: All application chunks acknowledged");
+          otaCore1State = OTA_CORE1_SEND_END_REQ;
+          break;
+        }
 
-          if (toRead > 0) {
-            int n = fwFile.read(rawData, toRead);
-            if (n != (int)toRead) {
-              Serial.println("OTA CORE1: SPIFFS read failed");
-              fwFile.close();
-              sendReport = true;
-              otaReportStatus = FIRMWARE_UPLOAD_FAILED;
-              otaCore1State = OTA_CORE1_ERROR;
-              otaCore0State = OTA_CORE0_REPORT;
-              break;
-            }
-          }
+        uint8_t payload[OTA_FRAME_DATA] = { 0xFF, 0xFF, 0xFF, 0xFF };
+        size_t fileBytesRemaining = totalFWSize - totalSent;
+        size_t bytesToRead = min((size_t)OTA_FRAME_DATA, fileBytesRemaining);
 
-          if (toRead < OTA_FRAME_DATA) {
-            memset(rawData + toRead, 0xFF, OTA_FRAME_DATA - toRead);
-          }
-
-          txBuf[0] = CMD_REQ_DATA;
-          memcpy(&txBuf[1], rawData, OTA_FRAME_DATA);
-
-          if (!CAN_WriteFrame(CANID_SCU_REQ, txBuf, 8)) {
-            Serial.println("OTA CORE1: CAN send failed (DATA)");
-            // otaCore1State = OTA_CORE1_ERROR;
+        if (bytesToRead > 0U) {
+          if (fwFile.read(payload, bytesToRead) != (int)bytesToRead) {
+            Serial.println("OTA CORE1: SPIFFS read failed");
+            fwFile.close();
+            sendReport = true;
+            otaReportStatus = FIRMWARE_UPLOAD_FAILED;
+            otaCore1State = OTA_CORE1_ERROR;
+            otaCore0State = OTA_CORE0_REPORT;
             break;
           }
+          totalSent += bytesToRead;
+        }
 
-          bytesSentInChunk += OTA_FRAME_DATA;
-          totalSent += toRead;
+        txBuf[0] = OTA_CAN_CMD_0_APP_CHUNK;
+        txBuf[1] = chunkIndex;
+        txBuf[2] = OTA_CAN_CMD_2_WRITE;
+        memcpy(&txBuf[4], payload, OTA_FRAME_DATA);
 
-          delay(1);
+        if (!CAN_WriteFrame(OTA_CAN_ID_HOST, txBuf, sizeof(txBuf))) {
+          Serial.println("OTA CORE1: CAN send failed (APP CHUNK)");
+          break;
+        }
 
-          /* The final padded frame is followed immediately by END. */
-          if (totalSent >= totalFWSize) {
-            fwFile.close();
-            Serial.println("OTA CORE1: Final firmware frame sent");
-            otaCore1State = OTA_CORE1_SEND_END_REQ;
-          } else {
-            /*
-             * Stop immediately after the frame which fills the PIC's 4096
-             * byte buffer. The frame can carry 0..6 bytes for the next
-             * buffer; they are already in the PIC before it starts NVM
-             * programming. Sending another frame here can overflow the
-             * MCP2515 receive buffers during the flash write.
-             */
-            size_t bytesUntilPicAck = OTA_FLASH_CHUNK_SIZE - picBufferedBytes;
-            size_t wireBytesUntilPicAck =
-              ((bytesUntilPicAck + OTA_FRAME_DATA - 1U) / OTA_FRAME_DATA) * OTA_FRAME_DATA;
+        bytesSentInChunk += OTA_FRAME_DATA;
 
-            if (bytesSentInChunk >= wireBytesUntilPicAck) {
-              waitingChunkAck = true;
-              otaPrevTxState = otaCore1State;
-              otaRxStartTime = millis();
-              otaCore1State = OTA_CORE1_CAN_RX_HANDLE;
-            }
-          }
+        /* Leave time for the MCP2515/PIC receiver to drain each frame. */
+        delay(1);
+
+        if (bytesSentInChunk == OTA_APP_CHUNK_SIZE) {
+          waitingChunkAck = true;
+          otaPrevTxState = otaCore1State;
+          otaRxStartTime = millis();
+          otaCore1State = OTA_CORE1_CAN_RX_HANDLE;
         }
 
         break;
@@ -754,6 +698,8 @@ bool OTA_Handler_CORE1(void) {
 
             case OTA_CAN_ID_CLIENT:
               {
+                otaValidRx = true;
+
                 switch (rx.data[0]) {
                   case OTA_CAN_CMD_0_PIC_ID:
                     {
@@ -1033,67 +979,35 @@ bool OTA_Handler_CORE1(void) {
                     }
                     break;
 
+                  case OTA_CAN_CMD_0_APP_CHUNK:
+                    {
+                      if ((rx.data[1] != chunkIndex) || (rx.data[2] != OTA_CAN_CMD_2_WRITE) || !waitingChunkAck) {
+                        break;
+                      }
+
+                      if (rx.data[3] == OTA_CAN_CMD_3_SUCCESS) {
+                        Serial.printf("OTA CORE1: APP chunk %u ACK OK (%u/%u bytes)\n",
+                                      chunkIndex, totalSent, totalFWSize);
+                        chunkIndex = (chunkIndex == 0xFFU) ? 1U : (uint8_t)(chunkIndex + 1U);
+                        bytesSentInChunk = 0U;
+                        waitingChunkAck = false;
+                        otaCore1State = OTA_CORE1_SEND_DATA;
+                      } else if (rx.data[3] == OTA_CAN_CMD_3_FAIL) {
+                        Serial.printf("OTA CORE1: APP chunk %u rejected by bootloader\n",
+                                      chunkIndex);
+                        sendReport = true;
+                        otaReportStatus = FIRMWARE_UPLOAD_FAILED;
+                        otaCore1State = OTA_CORE1_ERROR;
+                        otaCore0State = OTA_CORE0_REPORT;
+                      }
+                    }
+                    break;
+
                   default:
                     break;
                 }
               }
               break;
-
-            /* ---------- MCU STATUS / ACK ---------- */
-            case CANID_MCU_RESP:
-              {
-                otaValidRx = true;
-
-                static const uint8_t CHUNK_ACK_DATA[8] = { 0x88, 0x77, 0x66, 0xFF, 0x11, 0x22, 0x44, 0x33 };
-
-                if (waitingChunkAck && rx.data_length_code == 8 && memcmp(rx.data, CHUNK_ACK_DATA, 8) == 0) {
-
-                  Serial.printf("[CHUNK %u] ACK OK\n", chunkIndex);
-
-                  picBufferedBytes += bytesSentInChunk;
-                  if ((picBufferedBytes < OTA_FLASH_CHUNK_SIZE) || (picBufferedBytes >= (OTA_FLASH_CHUNK_SIZE + OTA_FRAME_DATA))) {
-                    Serial.println("OTA CORE1: Invalid PIC buffer accounting");
-                    sendReport = true;
-                    otaReportStatus = FIRMWARE_UPLOAD_FAILED;
-                    otaCore1State = OTA_CORE1_ERROR;
-                    otaCore0State = OTA_CORE0_REPORT;
-                    break;
-                  }
-
-                  picBufferedBytes -= OTA_FLASH_CHUNK_SIZE;
-                  bytesSentInChunk = 0;
-                  waitingChunkAck = false;
-                  chunkIndex++;
-
-                  otaCore1State = OTA_CORE1_SEND_DATA;
-                  break;
-                }
-
-                uint8_t resp = rx.data[0];
-
-                switch (resp) {
-
-                  case CMD_RESP_BOOTLOADER_MODE:
-                    mcuMode = MCU_MODE_BOOTLOADER;
-                    Serial.println("OTA CORE1: MCU in BOOTLOADER mode");
-                    otaCore1State = OTA_CORE1_APP_ERASE;
-                    break;
-
-                  case CMD_RESP_FLASH_READY:
-                    Serial.println("OTA CORE1: MCU FLASH READY");
-                    otaCore1State = OTA_CORE1_SEND_DATA;
-                    break;
-
-                  case CMD_RESP_APPLICATION_MODE:
-                    Serial.println("OTA CORE1: MCU in APPLICATION mode");
-                    otaCore1State = OTA_CORE1_BOOT_JUMP;
-                    break;
-
-                  default:
-                    break;
-                }
-                break;
-              }
 
             case CANID_RESP_END:
               {
@@ -1101,8 +1015,8 @@ bool OTA_Handler_CORE1(void) {
                 mcu_minor_latest = ota_server_minor;
                 Serial.println("OTA CORE1: UPDATE SUCCESS received");
                 otaCore1State = OTA_CORE1_APP_JMP_REQ;
-                break;
               }
+              break;
 
             default:
               break;
@@ -1143,8 +1057,8 @@ bool OTA_Handler_CORE1(void) {
 
                   otaCore1State = OTA_CORE1_ERROR;
                   otaCore0State = OTA_CORE0_REPORT;
-                  break;
                 }
+                break;
 
               case OTA_CORE1_READ_PROJECT_ID:
               case OTA_CORE1_READ_FIRMWARE_ID:
@@ -1157,6 +1071,7 @@ bool OTA_Handler_CORE1(void) {
                   otaCore1State = OTA_CORE1_ERROR;
                   otaCore0State = OTA_CORE0_REPORT;
                 }
+                break;
 
               case OTA_CORE1_COMPARE_APP_SIZE:
                 {
@@ -1180,17 +1095,7 @@ bool OTA_Handler_CORE1(void) {
                   otaCore1State = OTA_CORE1_ERROR;
                   otaCore0State = OTA_CORE0_REPORT;
                 }
-
-              case OTA_CORE1_SEND_STATUS_REQ:
-                {
-                  Serial.println("OTA CORE1: FAILED TO GET STATUS");
-
-                  sendReport = true;
-                  otaReportStatus = FAILED_TO_GET_STATUS;
-
-                  otaCore1State = OTA_CORE1_ERROR;
-                  otaCore0State = OTA_CORE0_REPORT;
-                }
+                break;
 
               case OTA_CORE1_APP_ERASE:
                 {
@@ -1202,6 +1107,7 @@ bool OTA_Handler_CORE1(void) {
                   otaCore1State = OTA_CORE1_ERROR;
                   otaCore0State = OTA_CORE0_REPORT;
                 }
+                break;
 
               case OTA_CORE1_SEND_DATA:
                 {
@@ -1213,6 +1119,7 @@ bool OTA_Handler_CORE1(void) {
                   otaCore1State = OTA_CORE1_ERROR;
                   otaCore0State = OTA_CORE0_REPORT;
                 }
+                break;
 
               case OTA_CORE1_SEND_END_REQ:
                 {
@@ -1224,49 +1131,55 @@ bool OTA_Handler_CORE1(void) {
                   otaCore1State = OTA_CORE1_ERROR;
                   otaCore0State = OTA_CORE0_REPORT;
                 }
+                break;
 
               default:
                 {
                   otaCore1State = OTA_CORE1_ERROR;
                   otaCore0State = OTA_CORE0_ERROR;
-                  break;
                 }
+                break;
             }
           } else {
             otaCore1State = otaPrevTxState;  // retry previous TX state
           }
         }
-
-        break;
       }
+      break;
 
     // ==================================================
     case OTA_CORE1_DONE:
-      LED_Green_Off();
+      {
+        LED_Green_Off();
 
-      otaServerVersionUpdated = false;
-      downloadBinFile = false;
-      isBinFileDownloaded = false;
-      mcuUpdateStarted = false;
+        otaServerVersionUpdated = false;
+        downloadBinFile = false;
+        isBinFileDownloaded = false;
+        mcuUpdateStarted = false;
 
-      // -------- RESET OTA DATA STATE --------
-      totalFWSize = 0;
-      totalSent = 0;
-      chunkIndex = 0;
-      bytesSentInChunk = 0;
-      picBufferedBytes = 0;
-      waitingChunkAck = false;
-      fileOpened = false;
+        // -------- RESET OTA DATA STATE --------
+        totalFWSize = 0;
+        totalSent = 0;
+        chunkIndex = 1U;
+        bytesSentInChunk = 0U;
+        waitingChunkAck = false;
+        fileOpened = false;
 
-      if (fwFile) fwFile.close();
+        if (fwFile) fwFile.close();
 
-      otaCore1State = OTA_CORE1_IDLE;
+        otaCore1State = OTA_CORE1_IDLE;
+      }
       break;
 
     // ==================================================
     case OTA_CORE1_ERROR:
-      LED_Green_Off();
-      // Serial.println("OTA CORE1: ERROR state");
+      {
+        LED_Green_Off();
+        // Serial.println("OTA CORE1: ERROR state");
+      }
+      break;
+
+    default:
       break;
   }
 

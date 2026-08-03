@@ -6,8 +6,8 @@
 #include <SPIFFS.h>
 
 #define CAN_RX_TIMEOUT 3000
-#define OTA_FLASH_CHUNK_SIZE 4096U
-#define OTA_FRAME_DATA       7U  // 1 byte CMD + 7 byte payload
+#define OTA_APP_CHUNK_SIZE  1024U
+#define OTA_FRAME_DATA       4U  // CAN bytes 4..7; bytes 0..3 are protocol
 
 // ---------------- API BASE ----------------
 #define OTA_VERSION_URL "https://ota.aproposdrive.com/api/firmware/latest-version"
@@ -72,56 +72,13 @@ typedef enum {
 } CAN_CMD_t;
 
 
-/* =====================================================
- * CAN IDs REQUEST (SCU → MCU)
- * ===================================================== */
 typedef enum {
-  CANID_REQ_PICID_1 =                         0xB0,     // Request PICID DEVSN0 DEVSN1
-  CANID_REQ_PICID_2 =                         0xB2,     // Request PICID DEVSN2 DEVSN3
-  CANID_REQ_SOFTWARE_ID =                     0xB4,     // Request software id(8) = {project id(4) = oem id(2) + app id(2)} + {firmware id(4) = major(2) + minor(2)}
-  CANID_SCU_REQ =                             0xB6,     // SCU request id
   CANID_REQ_END =                             0xB8      // Update software id(8) = {project id(4) = oem id(2) + app id(2)} + {firmware id(4) = major(2) + minor(2)}
 } CANID_REQ_t;
 
-/* =====================================================
- * CAN IDs REQUEST (MCU → SCU)
- * ===================================================== */
 typedef enum {
-  CANID_RESP_PICID_1 =                        0xB1,   // Response PICID DEVSN0 DEVSN1
-  CANID_RESP_PICID_2 =                        0xB3,   // Response PICID DEVSN2 DEVSN3
-  CANID_RESP_SOFTWARE_ID =                    0xB5,   // Response software id(8) = {project id(4) = oem id(2) + app id(2)} + {firmware id(4) = major(2) + minor(2)}
-  CANID_MCU_RESP =                            0xB7,   // MCU response id
   CANID_RESP_END =                            0xB9    // Software id updated successfully
 } CANID_RESP_t;
-
-/* =====================================================
- * COMMANDS REQUEST (SCU → MCU)
- * ===================================================== */
-typedef enum {
-  CMD_REQ_STATUS =                            0x54,       // Request MCU status
-  CMD_REQ_BOOTLOADER =                        0x51,       // Jump to bootloader
-  CMD_REQ_START =                             0x53,       // Start OTA
-  CMD_REQ_DATA =                              0x52,       // Firmware chunk
-  CMD_REQ_APP_JUMP =                          0x56        // Jump to application
-} CMD_REQ_t;
-
-/* =====================================================
- * COMMAND RESPONSE (MCU → SCU)
- * ===================================================== */
-typedef enum {
-  CMD_RESP_BOOTLOADER_MODE =                  0x58,     // MCU in bootloader mode
-  CMD_RESP_APPLICATION_MODE =                 0x57,     // MCU in application mode
-  CMD_RESP_UNDEFINED_MODE =                   0x59,     // MCU in undefined mode
-  CMD_RESP_JUMP_OK =                          0x1E,     // MCU jumped in bootloader mode
-  CMD_RESP_FLASH_READY =                      0x2E      // Flash memory erased and ready to receive data
-} CMD_RESP_t;
-
-
-typedef enum {
-  MCU_MODE_UNDEFINED = 0,
-  MCU_MODE_APPLICATION,
-  MCU_MODE_BOOTLOADER
-} MCU_MODE_t;
 
 typedef enum {
   ALREADY_UPDATED =               0,
@@ -133,7 +90,6 @@ typedef enum {
   FAILED_TO_GET_SOFTWARE_ID =     -4,
   APP_SIZE_EXCEED =               -11,
   BOOT_JUMP_FAIL =                -5,
-  FAILED_TO_GET_STATUS =          -6,
   APP_ERASE_FAIL =                -7,
   FIRMWARE_UPLOAD_FAILED =        -8,
   SOFTWARE_ID_UPDATE_FAILED =     -9,
@@ -165,7 +121,6 @@ typedef enum {
   OTA_CORE1_READ_FIRMWARE_ID,
   OTA_CORE1_COMPARE_APP_SIZE,
   OTA_CORE1_BOOT_JUMP,
-  OTA_CORE1_SEND_STATUS_REQ, 
   OTA_CORE1_APP_ERASE,    
   OTA_CORE1_SEND_DATA,  
   OTA_CORE1_SEND_END_REQ,
