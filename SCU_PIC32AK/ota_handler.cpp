@@ -551,24 +551,24 @@ bool OTA_Handler_CORE1(void) {
       }
 
       // ==================================================
-    case OTA_CORE1_SEND_START_REQ:
+    case OTA_CORE1_APP_ERASE:
       {
-        uint8_t tx[8] = { 0 };
-        tx[0] = CMD_REQ_START;  // 0x53
+        uint8_t txBuf[8] = { 0 };
+        txBuf[0] = OTA_CAN_CMD_0_APP_ERASE;
 
-        if (!CAN_WriteFrame(CANID_SCU_REQ, tx, 8)) {
-          Serial.println("OTA CORE1: START request send failed");
+        if (!CAN_WriteFrame(OTA_CAN_ID_HOST, txBuf, 8)) {
+          Serial.println("OTA CORE1: APP ERASE REQUEST SEND FAIL");
           // otaCore1State = OTA_CORE1_ERROR;
           break;
         }
 
-        Serial.println("OTA CORE1: START request sent (flash erase)");
+        Serial.println("OTA CORE1: APP ERASE REQUEST SEND SUCCESS");
 
         otaPrevTxState = otaCore1State;
         otaRxStartTime = millis();
         otaCore1State = OTA_CORE1_CAN_RX_HANDLE;
-        break;
       }
+      break;
 
       // ==================================================
     case OTA_CORE1_SEND_DATA:
@@ -720,7 +720,7 @@ bool OTA_Handler_CORE1(void) {
     case OTA_CORE1_APP_JMP_REQ:
       {
         uint8_t txBuf[8] = { 0 };
-        txBuf[0] = OTA_CAN_CMD_0_JUMP;  
+        txBuf[0] = OTA_CAN_CMD_0_JUMP;
         txBuf[1] = OTA_CAN_CMD_1_APP_JUMP;
 
         if (!CAN_WriteFrame(OTA_CAN_ID_HOST, txBuf, 8)) {
@@ -948,7 +948,7 @@ bool OTA_Handler_CORE1(void) {
                               case OTA_CAN_CMD_3_SUCCESS:
                                 {
                                   Serial.println("OTA CORE1: BOOT JUMP SUCCESS");
-                                  otaCore1State = OTA_CORE1_SEND_START_REQ;
+                                  otaCore1State = OTA_CORE1_APP_ERASE;
                                 }
                                 break;
 
@@ -1006,6 +1006,33 @@ bool OTA_Handler_CORE1(void) {
                     }
                     break;
 
+                  case OTA_CAN_CMD_0_APP_ERASE:
+                    {
+                      switch (rx.data[3]) {
+                        case OTA_CAN_CMD_3_SUCCESS:
+                          {
+                            Serial.println("OTA CORE1: APP ERASE SUCCESS");
+                            otaCore1State = OTA_CORE1_SEND_DATA;
+                          }
+                          break;
+
+                        case OTA_CAN_CMD_3_FAIL:
+                          {
+                            Serial.println("OTA CORE1: APP ERASE FAIL");
+                            sendReport = true;
+                            otaReportStatus = APP_ERASE_FAIL;
+
+                            otaCore1State = OTA_CORE1_ERROR;
+                            otaCore0State = OTA_CORE0_REPORT;
+                          }
+                          break;
+
+                        default:
+                          break;
+                      }
+                    }
+                    break;
+
                   default:
                     break;
                 }
@@ -1049,7 +1076,7 @@ bool OTA_Handler_CORE1(void) {
                   case CMD_RESP_BOOTLOADER_MODE:
                     mcuMode = MCU_MODE_BOOTLOADER;
                     Serial.println("OTA CORE1: MCU in BOOTLOADER mode");
-                    otaCore1State = OTA_CORE1_SEND_START_REQ;
+                    otaCore1State = OTA_CORE1_APP_ERASE;
                     break;
 
                   case CMD_RESP_FLASH_READY:
@@ -1165,12 +1192,12 @@ bool OTA_Handler_CORE1(void) {
                   otaCore0State = OTA_CORE0_REPORT;
                 }
 
-              case OTA_CORE1_SEND_START_REQ:
+              case OTA_CORE1_APP_ERASE:
                 {
                   Serial.println("OTA CORE1: MCU MEMORY ERASE FAILED");
 
                   sendReport = true;
-                  otaReportStatus = MCU_MEMORY_ERASE_FAILED;
+                  otaReportStatus = APP_ERASE_FAIL;
 
                   otaCore1State = OTA_CORE1_ERROR;
                   otaCore0State = OTA_CORE0_REPORT;

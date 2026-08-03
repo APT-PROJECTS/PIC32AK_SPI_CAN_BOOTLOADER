@@ -411,10 +411,27 @@ void Boot_Jump_Handler(void)
     }
 }
 
-bool App_Erase(void)
+void Boot_App_Erase_Handler(void)
 {
+    uint8_t txBuf[8] = {0};
     uint32_t address;
 
+    flashWriteAddress = APPLICATION_START_ADDRESS;
+    flashBufferIndex = 0;
+    firmwareUpdateActive = false;
+    firmwareUpdateFailed = false;
+    firmwareImageReady = false;
+
+    __builtin_memset(flashBuffer, 0xFF, sizeof(flashBuffer));
+
+    if (canRxBuffer[0] != BOOT_CAN_CMD_0_APP_ERASE)
+    {
+        return;
+    }
+
+    txBuf[0] = BOOT_CAN_CMD_0_APP_ERASE;
+
+    /* Erase complete application region */
     for (address = APPLICATION_START_ADDRESS;
          address <= APPLICATION_END_ADDRESS;
          address += BOOT_FLASH_PAGE_SIZE)
@@ -425,7 +442,9 @@ bool App_Erase(void)
 
         if (!NVM_PageErase(address))
         {
-            return false;
+            txBuf[3] = BOOT_CAN_CMD_3_FAIL;
+            CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof(txBuf));
+            return;
         }
 
         while (NVM_IsBusy())
@@ -433,36 +452,24 @@ bool App_Erase(void)
         }
     }
 
-    return true;
-}
-
-bool App_Erase_Verify(void)
-{
-    uint32_t address;
-
+    /* Verify erased flash */
     for (address = APPLICATION_START_ADDRESS;
          address <= APPLICATION_END_ADDRESS;
          address += 4U)
     {
         if (*(volatile const uint32_t *)address != 0xFFFFFFFFUL)
         {
-            return false;
+            txBuf[3] = BOOT_CAN_CMD_3_FAIL;
+            CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof(txBuf));
+            return;
         }
     }
 
-    return true;
-}
+    firmwareUpdateActive = true;
 
-void App_Erase_Success(void)
-{
-    uint8_t resp = (uint8_t)CMD_RESP_FLASH_READY;
-    static int ctr = 0;
-
-    for (ctr = 0; ctr <= 2000000; ctr++)
-    {
-    }
-
-    CANbus_write(CANID_MCU_RESP, &resp, sizeof(resp));
+    /* Erase successful */
+    txBuf[3] = BOOT_CAN_CMD_3_SUCCESS;
+    CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof(txBuf));
 }
 
 static void App_Update_End_Success(void)
@@ -666,6 +673,12 @@ void Run_Boot_Handler(uint32_t ID, uint8_t *rxBuffer)
                     Boot_Jump_Handler();
                     break;
                 }
+
+                case BOOT_CAN_CMD_0_APP_ERASE:
+                {
+                    Boot_App_Erase_Handler();
+                    break;
+                }
                     
                 default:
                     break;
@@ -677,28 +690,6 @@ void Run_Boot_Handler(uint32_t ID, uint8_t *rxBuffer)
 
             switch (rxBuffer[0])
             {
-                case CMD_REQ_START:
-                    flashWriteAddress = APPLICATION_START_ADDRESS;
-                    flashBufferIndex = 0;
-                    firmwareUpdateActive = false;
-                    firmwareUpdateFailed = false;
-                    firmwareImageReady = false;
-
-                    __builtin_memset(
-                        flashBuffer,
-                        0xFF,
-                        sizeof(flashBuffer));
-
-                    if (App_Erase())
-                    {
-                        if (App_Erase_Verify())
-                        {
-                            firmwareUpdateActive = true;
-                            App_Erase_Success();
-                        }
-                    }
-                    break;
-
                 case CMD_REQ_DATA:
                     App_Firmware_Write_Buffer(rxBuffer);
                     break;

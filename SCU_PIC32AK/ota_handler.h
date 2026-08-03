@@ -132,12 +132,12 @@ typedef enum {
   FAILED_TO_GET_PICID =           -3,
   FAILED_TO_GET_SOFTWARE_ID =     -4,
   APP_SIZE_EXCEED =               -11,
-  BOOT_JUMP_FAIL =              -5,
+  BOOT_JUMP_FAIL =                -5,
   FAILED_TO_GET_STATUS =          -6,
-  MCU_MEMORY_ERASE_FAILED =       -7,
+  APP_ERASE_FAIL =                -7,
   FIRMWARE_UPLOAD_FAILED =        -8,
   SOFTWARE_ID_UPDATE_FAILED =     -9,
-  APP_JUMP_FAIL =       -10
+  APP_JUMP_FAIL =                 -10
 } OTA_REPORT_t;
 
 /* =====================================================
@@ -166,7 +166,7 @@ typedef enum {
   OTA_CORE1_COMPARE_APP_SIZE,
   OTA_CORE1_BOOT_JUMP,
   OTA_CORE1_SEND_STATUS_REQ, 
-  OTA_CORE1_SEND_START_REQ,    
+  OTA_CORE1_APP_ERASE,    
   OTA_CORE1_SEND_DATA,  
   OTA_CORE1_SEND_END_REQ,
   OTA_CORE1_APP_JMP_REQ,
