@@ -651,21 +651,16 @@ bool OTA_Handler_CORE1(void) {
     case OTA_CORE1_VERIFY_APP_CRC:
       {
         uint8_t txBuf[8] = { 0U };
-        uint32_t finalCrc = firmwareCrc32 ^ 0xFFFFFFFFU;
 
         txBuf[0] = OTA_CAN_CMD_0_APP_CRC;
-        txBuf[2] = OTA_CAN_CMD_2_COMPARE;
-        txBuf[4] = (uint8_t)(finalCrc >> 24);
-        txBuf[5] = (uint8_t)(finalCrc >> 16);
-        txBuf[6] = (uint8_t)(finalCrc >> 8);
-        txBuf[7] = (uint8_t)finalCrc;
+        txBuf[2] = OTA_CAN_CMD_2_READ;
 
         if (!CAN_WriteFrame(OTA_CAN_ID_HOST, txBuf, sizeof(txBuf))) {
           Serial.println("OTA CORE1: APP CRC request send failed");
           break;
         }
 
-        Serial.printf("OTA CORE1: APP CRC = 0x%08lX sent\n", finalCrc);
+        Serial.println("OTA CORE1: APP CRC read request sent");
         otaPrevTxState = otaCore1State;
         otaRxStartTime = millis();
         otaCore1State = OTA_CORE1_CAN_RX_HANDLE;
@@ -1186,8 +1181,9 @@ bool OTA_Handler_CORE1(void) {
                   case OTA_CAN_CMD_0_APP_CRC:
                     {
                       uint32_t picCrc;
+                      uint32_t hostCrc = firmwareCrc32 ^ 0xFFFFFFFFU;
 
-                      if (rx.data[2] != OTA_CAN_CMD_2_COMPARE) {
+                      if (rx.data[2] != OTA_CAN_CMD_2_READ) {
                         break;
                       }
 
@@ -1196,11 +1192,12 @@ bool OTA_Handler_CORE1(void) {
                                ((uint32_t)rx.data[6] << 8)  |
                                ((uint32_t)rx.data[7]);
 
-                      if (rx.data[3] == OTA_CAN_CMD_3_SUCCESS) {
-                        Serial.printf("OTA CORE1: APP CRC VERIFIED (PIC: 0x%08lX)\n", picCrc);
+                      if ((rx.data[3] == OTA_CAN_CMD_3_SUCCESS) && (picCrc == hostCrc)) {
+                        Serial.printf("OTA CORE1: APP CRC VERIFIED (HOST/PIC: 0x%08lX)\n", picCrc);
                         otaCore1State = OTA_CORE1_UPDATE_PROJECT_ID;
-                      } else if (rx.data[3] == OTA_CAN_CMD_3_FAIL) {
-                        Serial.printf("OTA CORE1: APP CRC MISMATCH (PIC: 0x%08lX)\n", picCrc);
+                      } else {
+                        Serial.printf("OTA CORE1: APP CRC MISMATCH (HOST: 0x%08lX, PIC: 0x%08lX)\n",
+                                      hostCrc, picCrc);
                         sendReport = true;
                         otaReportStatus = FIRMWARE_CRC_FAIL;
                         otaCore1State = OTA_CORE1_ERROR;

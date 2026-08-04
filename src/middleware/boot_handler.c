@@ -716,21 +716,16 @@ static uint32_t Boot_APP_CRC32_Software(const volatile uint8_t *data, uint32_t l
 void Boot_APP_CRC_Handler(void)
 {
     uint8_t txBuf[8] = {0U};
-    uint32_t hostCrc;
     uint32_t flashCrc;
 
     if ((canRxBuffer[0] != BOOT_CAN_CMD_0_APP_CRC) ||
-        (canRxBuffer[2] != BOOT_CAN_CMD_2_COMPARE))
+        (canRxBuffer[2] != BOOT_CAN_CMD_2_READ))
     {
         return;
     }
 
     txBuf[0] = BOOT_CAN_CMD_0_APP_CRC;
-    txBuf[2] = BOOT_CAN_CMD_2_COMPARE;
-    hostCrc = ((uint32_t)canRxBuffer[4] << 24) |
-              ((uint32_t)canRxBuffer[5] << 16) |
-              ((uint32_t)canRxBuffer[6] << 8)  |
-              ((uint32_t)canRxBuffer[7]);
+    txBuf[2] = BOOT_CAN_CMD_2_READ;
 
     /* Every 1 KiB CAN chunk must have been acknowledged and written first. */
     if (!firmwareUpdateActive)
@@ -770,8 +765,9 @@ void Boot_APP_CRC_Handler(void)
         (const volatile uint8_t *)APPLICATION_START_ADDRESS,
         firmwareExpectedSize);
 
-    firmwareCrcVerified = (flashCrc == hostCrc);
-    txBuf[3] = firmwareCrcVerified ? BOOT_CAN_CMD_3_SUCCESS : BOOT_CAN_CMD_3_FAIL;
+    /* The OTA host compares this returned CRC with its source-file CRC. */
+    firmwareCrcVerified = true;
+    txBuf[3] = BOOT_CAN_CMD_3_SUCCESS;
     txBuf[4] = (uint8_t)(flashCrc >> 24);
     txBuf[5] = (uint8_t)(flashCrc >> 16);
     txBuf[6] = (uint8_t)(flashCrc >> 8);
