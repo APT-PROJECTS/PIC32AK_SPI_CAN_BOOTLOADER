@@ -34,8 +34,7 @@ void CANbus_read(void) {
         rstat = 0;
         
         // For OTA Bootloader Updates
-        if (msg_id == BOOT_CAN_ID_HOST ||
-                msg_id == CANID_REQ_END) {
+        if (msg_id == BOOT_CAN_ID_HOST) {
             Run_Boot_Handler(msg_id, Rdata);
         }
     }

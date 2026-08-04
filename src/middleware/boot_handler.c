@@ -80,6 +80,7 @@ void Boot_PIC_ID_Handler(void)
 void Boot_Software_ID_Handler(void) {
     uint8_t txBuf[8];
     float softwareId;
+    bool commitFirmwareUpdate;
 
     if (canRxBuffer[0] != BOOT_CAN_CMD_0_SOFTWARE_ID) {
         return;
@@ -115,6 +116,34 @@ void Boot_Software_ID_Handler(void) {
             /*------------------------- WRITE -------------------------*/
         case BOOT_CAN_CMD_2_WRITE:
 
+            /*
+             * The firmware-ID WRITE replaces the former CANID_REQ_END frame.
+             * It is accepted only after all application data has been written
+             * successfully.  A partial buffer is flushed here as a safeguard.
+             */
+            commitFirmwareUpdate =
+                ((canRxBuffer[1] == BOOT_CAN_CMD_1_FIRMWARE_ID) &&
+                 firmwareUpdateActive);
+
+            if (commitFirmwareUpdate)
+            {
+                if (!firmwareUpdateFailed && (flashBufferIndex > 0U) &&
+                    !App_Firmware_Write_Flash())
+                {
+                    firmwareUpdateFailed = true;
+                }
+
+                if (firmwareUpdateFailed)
+                {
+                    txBuf[0] = BOOT_CAN_CMD_0_SOFTWARE_ID;
+                    txBuf[1] = canRxBuffer[1];
+                    txBuf[2] = BOOT_CAN_CMD_2_WRITE;
+                    txBuf[3] = BOOT_CAN_CMD_3_FAIL;
+                    CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof(txBuf));
+                    return;
+                }
+            }
+
             txBuf[0] = BOOT_CAN_CMD_0_SOFTWARE_ID;
             txBuf[1] = canRxBuffer[1];
             txBuf[2] = BOOT_CAN_CMD_2_WRITE;
@@ -138,6 +167,13 @@ void Boot_Software_ID_Handler(void) {
 
             if (FLASH_EEPROM_Write_Page(eepromBuffer, sizeof (writeMatrix)) == FLASH_EEPROM_OK) {
                 txBuf[3] = BOOT_CAN_CMD_3_SUCCESS;
+
+                /* Commit the application only after its firmware ID is saved. */
+                if (commitFirmwareUpdate)
+                {
+                    firmwareImageReady = true;
+                    firmwareUpdateActive = false;
+                }
             } else {
                 txBuf[3] = BOOT_CAN_CMD_3_FAIL;
             }
@@ -482,13 +518,6 @@ void Boot_App_Erase_Handler(void)
     CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof(txBuf));
 }
 
-static void App_Update_End_Success(void)
-{
-    uint8_t response[8] = {0U};
-
-    CANbus_write(CANID_RESP_END, response, sizeof(response));
-}
-
 static bool App_Firmware_Write_Flash(void)
 {
     uint32_t rowAddr;
@@ -678,25 +707,6 @@ void Run_Boot_Handler(uint32_t ID, uint8_t *rxBuffer)
             }
             break;
         }
-
-        case CANID_REQ_END:
-            if (firmwareUpdateActive && !firmwareUpdateFailed &&
-                (flashBufferIndex > 0U))
-            {
-                if (!App_Firmware_Write_Flash())
-                {
-                    firmwareUpdateFailed = true;
-                }
-            }
-
-            firmwareImageReady = firmwareUpdateActive && !firmwareUpdateFailed;
-            firmwareUpdateActive = false;
-
-            if (firmwareImageReady)
-            {
-                App_Update_End_Success();
-            }
-            break;
 
         default:
             break;
