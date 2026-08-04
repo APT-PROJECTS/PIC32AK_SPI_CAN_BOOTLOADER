@@ -733,40 +733,62 @@ bool OTA_Handler_CORE1(void) {
                       switch (rx.data[2]) {
                         case OTA_CAN_CMD_2_READ:
                           {
-                            switch (rx.data[1]) {
-                              case OTA_CAN_CMD_1_PIC_ID_1:
-                                {
-                                  memcpy(&PIC_ID_RAW[0], &rx.data[4], 4);
-                                  otaCore1State = OTA_CORE1_READ_PIC_ID_2;
+                            switch (rx.data[3]) {
+                              /*---------------------- SUCCESS ----------------------*/
+                              case OTA_CAN_CMD_3_SUCCESS:
+
+                                switch (rx.data[1]) {
+                                  case OTA_CAN_CMD_1_PIC_ID_1:
+                                    {
+                                      memcpy(&PIC_ID_RAW[0], &rx.data[4], 4);
+                                      otaCore1State = OTA_CORE1_READ_PIC_ID_2;
+                                    }
+                                    break;
+
+                                  case OTA_CAN_CMD_1_PIC_ID_2:
+                                    {
+                                      memcpy(&PIC_ID_RAW[4], &rx.data[4], 4);
+                                      otaCore1State = OTA_CORE1_READ_PIC_ID_3;
+                                    }
+                                    break;
+
+                                  case OTA_CAN_CMD_1_PIC_ID_3:
+                                    {
+                                      memcpy(&PIC_ID_RAW[8], &rx.data[4], 4);
+                                      otaCore1State = OTA_CORE1_READ_PIC_ID_4;
+                                    }
+                                    break;
+
+                                  case OTA_CAN_CMD_1_PIC_ID_4:
+                                    {
+                                      memcpy(&PIC_ID_RAW[12], &rx.data[4], 4);
+                                      memcpy(PIC_ID, PIC_ID_RAW, 16);
+
+                                      Serial.print("OTA CORE1: PIC ID = ");
+                                      for (int i = 0; i < 16; i++) {
+                                        Serial.printf("%02X", PIC_ID[i]);
+                                      }
+                                      Serial.println();
+
+                                      otaCore1State = OTA_CORE1_READ_PROJECT_ID;
+                                    }
+                                    break;
+
+                                  default:
+                                    break;
                                 }
                                 break;
 
-                              case OTA_CAN_CMD_1_PIC_ID_2:
-                                {
-                                  memcpy(&PIC_ID_RAW[4], &rx.data[4], 4);
-                                  otaCore1State = OTA_CORE1_READ_PIC_ID_3;
-                                }
-                                break;
+                              /*------------------------ FAIL -----------------------*/
+                              case OTA_CAN_CMD_3_FAIL:
 
-                              case OTA_CAN_CMD_1_PIC_ID_3:
-                                {
-                                  memcpy(&PIC_ID_RAW[8], &rx.data[4], 4);
-                                  otaCore1State = OTA_CORE1_READ_PIC_ID_4;
-                                }
-                                break;
+                                Serial.println("OTA CORE1: PIC ID READ FAILED");
 
-                              case OTA_CAN_CMD_1_PIC_ID_4:
-                                {
-                                  memcpy(&PIC_ID_RAW[12], &rx.data[4], 4);
-                                  memcpy(PIC_ID, PIC_ID_RAW, 16);
+                                sendReport = true;
+                                otaReportStatus = PIC_ID_READ_FAIL;  // Define this report status
 
-                                  Serial.print("OTA CORE1: PIC ID = ");
-                                  for (int i = 0; i < 16; i++)
-                                    Serial.printf("%02X", PIC_ID[i]);
-                                  Serial.println();
-
-                                  otaCore1State = OTA_CORE1_READ_PROJECT_ID;
-                                }
+                                otaCore1State = OTA_CORE1_ERROR;
+                                otaCore0State = OTA_CORE0_REPORT;
                                 break;
 
                               default:
@@ -786,81 +808,106 @@ bool OTA_Handler_CORE1(void) {
                       switch (rx.data[2]) {
                         case OTA_CAN_CMD_2_READ:
                           {
-                            float softwareId;
-
-                            /* Reconstruct IEEE-754 float from bytes 4-7 */
-                            memcpy(&softwareId, &rx.data[4], sizeof(float));
-
-                            switch (rx.data[1]) {
-                              case OTA_CAN_CMD_1_PROJECT_ID:
+                            switch (rx.data[3]) {
+                              /*---------------------- SUCCESS ----------------------*/
+                              case OTA_CAN_CMD_3_SUCCESS:
                                 {
-                                  uint16_t mcu_oem_id = (uint16_t)softwareId;
-                                  uint16_t mcu_application_id = (uint16_t)((softwareId - (float)mcu_oem_id) * 10.0f + 0.5f);
+                                  float softwareId;
 
-                                  /* -------- NEW MCU CHECK -------- */
-                                  bool newMCU = (mcu_oem_id == 0x0000 && mcu_application_id == 0x0000);
+                                  /* Reconstruct IEEE-754 float from bytes 4-7 */
+                                  memcpy(&softwareId, &rx.data[4], sizeof(float));
 
-                                  /* -------- OEM ID CHECK -------- */
-                                  if (!newMCU && mcu_oem_id != OEM_ID) {
-                                    Serial.println("OTA CORE1: OEM ID mismatch");
+                                  switch (rx.data[1]) {
+                                    case OTA_CAN_CMD_1_PROJECT_ID:
+                                      {
+                                        uint16_t mcu_oem_id = (uint16_t)softwareId;
+                                        uint16_t mcu_application_id =
+                                          (uint16_t)((softwareId - (float)mcu_oem_id) * 10.0f + 0.5f);
 
-                                    sendReport = true;
-                                    otaReportStatus = OEM_ID_MISMATCH;
+                                        /* -------- NEW MCU CHECK -------- */
+                                        bool newMCU = (mcu_oem_id == 0x0000 && mcu_application_id == 0x0000);
 
-                                    otaCore1State = OTA_CORE1_ERROR;
-                                    otaCore0State = OTA_CORE0_REPORT;
-                                    break;
+                                        /* -------- OEM ID CHECK -------- */
+                                        if (!newMCU && (mcu_oem_id != OEM_ID)) {
+                                          Serial.println("OTA CORE1: OEM ID mismatch");
+
+                                          sendReport = true;
+                                          otaReportStatus = OEM_ID_MISMATCH;
+
+                                          otaCore1State = OTA_CORE1_ERROR;
+                                          otaCore0State = OTA_CORE0_REPORT;
+                                          break;
+                                        }
+
+                                        /* -------- APPLICATION ID CHECK -------- */
+                                        if (!newMCU && (mcu_application_id != APPLICATION_ID)) {
+                                          Serial.println("OTA CORE1: APPLICATION ID mismatch");
+
+                                          sendReport = true;
+                                          otaReportStatus = APPLICATION_ID_MISMATCH;
+
+                                          otaCore1State = OTA_CORE1_ERROR;
+                                          otaCore0State = OTA_CORE0_REPORT;
+                                          break;
+                                        }
+
+                                        otaCore1State = OTA_CORE1_READ_FIRMWARE_ID;
+                                      }
+                                      break;
+
+                                    case OTA_CAN_CMD_1_FIRMWARE_ID:
+                                      {
+                                        mcu_major_previous = (uint16_t)softwareId;
+                                        mcu_minor_previous =
+                                          (uint16_t)((softwareId - (float)mcu_major_previous) * 10.0f + 0.5f);
+
+                                        Serial.printf(
+                                          "OTA CORE1: MCU %u.%u | Server %u.%u\n",
+                                          mcu_major_previous,
+                                          mcu_minor_previous,
+                                          ota_server_major,
+                                          ota_server_minor);
+
+                                        /* -------- VERSION CHECK -------- */
+                                        if ((mcu_major_previous > ota_server_major) || ((mcu_major_previous == ota_server_major) && (mcu_minor_previous >= ota_server_minor))) {
+                                          Serial.println("OTA CORE1: OTA NOT required");
+
+                                          sendReport = true;
+
+                                          mcu_major_latest = ota_server_major;
+                                          mcu_minor_latest = ota_server_minor;
+
+                                          otaReportStatus = ALREADY_UPDATED;
+
+                                          otaCore1State = OTA_CORE1_DONE;
+                                          otaCore0State = OTA_CORE0_REPORT;
+
+                                          return false;
+                                        }
+
+                                        downloadBinFile = true;
+                                        Serial.println("OTA CORE1: OTA REQUIRED");
+
+                                        otaCore1State = OTA_CORE1_COMPARE_APP_SIZE;
+                                      }
+                                      break;
+
+                                    default:
+                                      break;
                                   }
-
-                                  /* -------- APPLICATION ID CHECK -------- */
-                                  if (!newMCU && mcu_application_id != APPLICATION_ID) {
-                                    Serial.println("OTA CORE1: APPLICATION ID mismatch");
-
-                                    sendReport = true;
-                                    otaReportStatus = APPLICATION_ID_MISMATCH;
-
-                                    otaCore1State = OTA_CORE1_ERROR;
-                                    otaCore0State = OTA_CORE0_REPORT;
-                                    break;
-                                  }
-
-                                  otaCore1State = OTA_CORE1_READ_FIRMWARE_ID;
                                 }
                                 break;
 
-                              case OTA_CAN_CMD_1_FIRMWARE_ID:
+                              /*------------------------ FAIL -----------------------*/
+                              case OTA_CAN_CMD_3_FAIL:
                                 {
-                                  /* -------- VERSION (16-bit) -------- */
-                                  mcu_major_previous = (uint16_t)softwareId;
-                                  mcu_minor_previous = (uint16_t)((softwareId - (float)mcu_major_previous) * 10.0f + 0.5f);
+                                  Serial.println("OTA CORE1: Software ID READ FAILED");
 
-                                  Serial.printf(
-                                    "OTA CORE1: MCU %u.%u | Server %u.%u\n",
-                                    mcu_major_previous, mcu_minor_previous,
-                                    ota_server_major, ota_server_minor);
+                                  sendReport = true;
+                                  otaReportStatus = SOFTWARE_ID_READ_FAIL;  // Define this report status
 
-                                  /* -------- VERSION CHECK -------- */
-                                  if ((mcu_major_previous > ota_server_major) || (mcu_major_previous == ota_server_major && mcu_minor_previous >= ota_server_minor)) {
-
-                                    Serial.println("OTA CORE1: OTA NOT required");
-
-                                    sendReport = true;
-
-                                    mcu_major_latest = ota_server_major;
-                                    mcu_minor_latest = ota_server_minor;
-
-                                    otaReportStatus = ALREADY_UPDATED;
-
-                                    otaCore1State = OTA_CORE1_DONE;
-                                    otaCore0State = OTA_CORE0_REPORT;
-
-                                    return false;
-                                  }
-
-                                  downloadBinFile = true;
-                                  Serial.println("OTA CORE1: OTA REQUIRED");
-
-                                  otaCore1State = OTA_CORE1_COMPARE_APP_SIZE;
+                                  otaCore1State = OTA_CORE1_ERROR;
+                                  otaCore0State = OTA_CORE0_REPORT;
                                 }
                                 break;
 
@@ -1137,7 +1184,7 @@ bool OTA_Handler_CORE1(void) {
                   Serial.println("OTA CORE1: FAILED TO GET PIC ID");
 
                   sendReport = true;
-                  otaReportStatus = FAILED_TO_GET_PIC_ID;
+                  otaReportStatus = PIC_ID_READ_FAIL;
 
                   otaCore1State = OTA_CORE1_ERROR;
                   otaCore0State = OTA_CORE0_REPORT;
@@ -1150,7 +1197,7 @@ bool OTA_Handler_CORE1(void) {
                   Serial.println("OTA CORE1: FAILED TO GET SOFTWARE ID");
 
                   sendReport = true;
-                  otaReportStatus = FAILED_TO_GET_SOFTWARE_ID;
+                  otaReportStatus = SOFTWARE_ID_READ_FAIL;
 
                   otaCore1State = OTA_CORE1_ERROR;
                   otaCore0State = OTA_CORE0_REPORT;

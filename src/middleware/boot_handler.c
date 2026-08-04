@@ -40,7 +40,19 @@ void Boot_PIC_ID_Handler(void)
             txBuf[0] = BOOT_CAN_CMD_0_PIC_ID;
             txBuf[1] = canRxBuffer[1];
             txBuf[2] = BOOT_CAN_CMD_2_READ;
-            txBuf[3] = 0x00;
+
+            /* Check if PIC ID is available */
+            if ((udid[0] == 0U) &&
+                (udid[1] == 0U) &&
+                (udid[2] == 0U) &&
+                (udid[3] == 0U))
+            {
+                txBuf[3] = BOOT_CAN_CMD_3_FAIL;
+            }
+            else
+            {
+                txBuf[3] = BOOT_CAN_CMD_3_SUCCESS;
+            }
 
             switch (canRxBuffer[1])
             {
@@ -93,9 +105,9 @@ void Boot_Software_ID_Handler(void) {
             txBuf[0] = BOOT_CAN_CMD_0_SOFTWARE_ID;
             txBuf[1] = canRxBuffer[1];
             txBuf[2] = BOOT_CAN_CMD_2_READ;
-            txBuf[3] = 0x00;
 
-            switch (canRxBuffer[1]) {
+            switch (canRxBuffer[1])
+            {
                 case BOOT_CAN_CMD_1_PROJECT_ID:
                     softwareId = R_PROJECT_ID;
                     break;
@@ -108,9 +120,19 @@ void Boot_Software_ID_Handler(void) {
                     return;
             }
 
-            __builtin_memcpy(&txBuf[4], &softwareId, sizeof (float));
+            /* Validate Software ID */
+            if (softwareId < 0.0f)
+            {
+                txBuf[3] = BOOT_CAN_CMD_3_FAIL;
+            }
+            else
+            {
+                txBuf[3] = BOOT_CAN_CMD_3_SUCCESS;
+            }
 
-            CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof (txBuf));
+            __builtin_memcpy(&txBuf[4], &softwareId, sizeof(float));
+
+            CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof(txBuf));
             break;
 
             /*------------------------- WRITE -------------------------*/
@@ -253,7 +275,7 @@ void Boot_App_Size_Handler(void)
                            ((uint32_t)canRxBuffer[7]);
 
             /* Maximum allowed firmware size = Application partition - 4 KB */
-            maxAppSize = (APPLICATION_END_ADDRESS - APPLICATION_START_ADDRESS + 1U) - (4U * 1024U);
+            maxAppSize = (APPLICATION_END_ADDRESS - APPLICATION_START_ADDRESS + 1U) - (2U * 1024U);
 
             txBuf[0] = BOOT_CAN_CMD_0_APP_SIZE;
             txBuf[2] = BOOT_CAN_CMD_2_COMPARE;
@@ -421,6 +443,15 @@ void Boot_Jump_Handler(void)
             break;
 
         case BOOT_CAN_CMD_1_APP_JUMP:
+            /* Already running in Application */
+            if ((addr >= APPLICATION_START_ADDRESS) &&
+                (addr <= APPLICATION_END_ADDRESS))
+            {
+                txBuf[3] = BOOT_CAN_CMD_3_SUCCESS;
+                CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof(txBuf));
+                break;
+            }
+            
             /* Finalize an update when the host uses JUMP instead of END. */
             if (firmwareUpdateActive && !firmwareUpdateFailed &&
                 (flashBufferIndex > 0U))
