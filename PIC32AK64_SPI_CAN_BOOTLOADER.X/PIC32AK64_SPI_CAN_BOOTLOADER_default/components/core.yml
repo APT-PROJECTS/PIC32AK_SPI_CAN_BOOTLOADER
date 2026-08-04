@@ -63,6 +63,7 @@ data:
     FUSE_CONFIG_CODE_GEN:
       attributes:
         id: FUSE_CONFIG_CODE_GEN
+        label: FUSE_CONFIG_CODE_GEN
       children:
       - children:
         - attributes:
@@ -1186,6 +1187,28 @@ data:
           type: User
         type: Values
       type: String
+    CONFIG_FCP_CRC:
+      attributes:
+        id: CONFIG_FCP_CRC
+        label: CRC enable bit (CRC)
+      children:
+      - children:
+        - attributes:
+            value: 'OFF'
+          type: User
+        type: Values
+      type: Combo
+    CONFIG_FCP_CP:
+      attributes:
+        id: CONFIG_FCP_CP
+        label: Memory protection enable bit (CP)
+      children:
+      - children:
+        - attributes:
+            value: 'OFF'
+          type: User
+        type: Values
+      type: Combo
   userData:
     children:
     - attributes:

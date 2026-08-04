@@ -2,7 +2,7 @@
 
 manifest_file_version: 1.0.0
 project: PIC32AK64_SPI_CAN_BOOTLOADER_default
-creation_date: 2026-07-30T14:21:40.452+05:30[Asia/Calcutta]
+creation_date: 2026-08-04T19:43:04.924+05:30[Asia/Calcutta]
 operating_system: Windows 11
 mcc_mode: VSCodePlugin
 mcc_mode_version: Unknown

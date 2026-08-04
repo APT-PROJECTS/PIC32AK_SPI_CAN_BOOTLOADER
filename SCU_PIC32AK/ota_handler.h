@@ -84,6 +84,7 @@ typedef enum {
   BOOT_JUMP_FAIL =                -5,
   APP_ERASE_FAIL =                -7,
   FIRMWARE_UPLOAD_FAIL =          -8,
+  FIRMWARE_CRC_FAIL =             -12,
   SOFTWARE_ID_UPDATE_FAIL =       -9,
   APP_JUMP_FAIL =                 -10
 } OTA_REPORT_t;
@@ -115,6 +116,7 @@ typedef enum {
   OTA_CORE1_BOOT_JUMP,
   OTA_CORE1_APP_ERASE,    
   OTA_CORE1_SEND_APP_CHUNK,  
+  OTA_CORE1_VERIFY_APP_CRC,
   OTA_CORE1_UPDATE_PROJECT_ID,
   OTA_CORE1_UPDATE_FIRMWARE_ID,
   OTA_CORE1_APP_JUMP,

@@ -15,6 +15,8 @@ static uint32_t flashWriteAddress = APPLICATION_START_ADDRESS;
 static bool firmwareUpdateActive = false;
 static bool firmwareUpdateFailed = false;
 static bool firmwareImageReady = false;
+static bool firmwareCrcVerified = false;
+static uint32_t firmwareExpectedSize = 0U;
 static uint8_t expectedChunkIndex = 1U;
 static uint8_t lastAcceptedChunkIndex = 0U;
 
@@ -155,7 +157,7 @@ void Boot_Software_ID_Handler(void) {
                     firmwareUpdateFailed = true;
                 }
 
-                if (firmwareUpdateFailed)
+                if (firmwareUpdateFailed || !firmwareCrcVerified)
                 {
                     txBuf[0] = BOOT_CAN_CMD_0_SOFTWARE_ID;
                     txBuf[1] = canRxBuffer[1];
@@ -279,9 +281,12 @@ void Boot_App_Size_Handler(void)
 
             txBuf[0] = BOOT_CAN_CMD_0_APP_SIZE;
             txBuf[2] = BOOT_CAN_CMD_2_COMPARE;
+            firmwareExpectedSize = 0U;
 
-            if (firmwareSize < maxAppSize)
+            if ((firmwareSize > 0U) && (firmwareSize < maxAppSize))
             {
+                /* CRC covers only this exact file size, never CAN padding. */
+                firmwareExpectedSize = firmwareSize;
                 txBuf[3] = BOOT_CAN_CMD_3_SUCCESS;
             }
             else
@@ -452,7 +457,7 @@ void Boot_Jump_Handler(void)
                 break;
             }
             
-            /* Finalize an update when the host uses JUMP instead of END. */
+            /* Safety fallback: never accept a received image without CRC. */
             if (firmwareUpdateActive && !firmwareUpdateFailed &&
                 (flashBufferIndex > 0U))
             {
@@ -464,8 +469,15 @@ void Boot_Jump_Handler(void)
 
             if (firmwareUpdateActive)
             {
-                firmwareImageReady = !firmwareUpdateFailed;
+                firmwareImageReady = firmwareCrcVerified && !firmwareUpdateFailed;
                 firmwareUpdateActive = false;
+
+                if (!firmwareImageReady)
+                {
+                    txBuf[3] = BOOT_CAN_CMD_3_FAIL;
+                    CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof(txBuf));
+                    break;
+                }
             }
 
             if (!firmwareUpdateFailed && (Boot_Is_App_Present() == true))
@@ -496,6 +508,7 @@ void Boot_App_Erase_Handler(void)
     firmwareUpdateActive = false;
     firmwareUpdateFailed = false;
     firmwareImageReady = false;
+    firmwareCrcVerified = false;
     expectedChunkIndex = 1U;
     lastAcceptedChunkIndex = 0U;
 
@@ -681,6 +694,91 @@ void Boot_App_Chunk_Handler(void)
     Boot_App_Chunk_Ack(chunkIndex, BOOT_CAN_CMD_3_SUCCESS);
 }
 
+static uint32_t Boot_APP_CRC32_Software(const volatile uint8_t *data, uint32_t length)
+{
+    uint32_t crc = 0xFFFFFFFFU;
+    uint8_t bit;
+
+    while (length-- > 0U)
+    {
+        crc ^= *data++;
+
+        for (bit = 0U; bit < 8U; bit++)
+        {
+            crc = ((crc & 1U) != 0U) ?
+                  ((crc >> 1U) ^ 0xEDB88320U) : (crc >> 1U);
+        }
+    }
+
+    return crc ^ 0xFFFFFFFFU;
+}
+
+void Boot_APP_CRC_Handler(void)
+{
+    uint8_t txBuf[8] = {0U};
+    uint32_t hostCrc;
+    uint32_t flashCrc;
+
+    if ((canRxBuffer[0] != BOOT_CAN_CMD_0_APP_CRC) ||
+        (canRxBuffer[2] != BOOT_CAN_CMD_2_COMPARE))
+    {
+        return;
+    }
+
+    txBuf[0] = BOOT_CAN_CMD_0_APP_CRC;
+    txBuf[2] = BOOT_CAN_CMD_2_COMPARE;
+    hostCrc = ((uint32_t)canRxBuffer[4] << 24) |
+              ((uint32_t)canRxBuffer[5] << 16) |
+              ((uint32_t)canRxBuffer[6] << 8)  |
+              ((uint32_t)canRxBuffer[7]);
+
+    /* Every 1 KiB CAN chunk must have been acknowledged and written first. */
+    if (!firmwareUpdateActive)
+    {
+        firmwareCrcVerified = false;
+        txBuf[3] = BOOT_CAN_CMD_3_FAIL;
+        CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof(txBuf));
+        return;
+    }
+
+    if (firmwareUpdateFailed)
+    {
+        firmwareCrcVerified = false;
+        txBuf[3] = BOOT_CAN_CMD_3_FAIL;
+        CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof(txBuf));
+        return;
+    }
+
+    if (firmwareExpectedSize == 0U)
+    {
+        firmwareCrcVerified = false;
+        txBuf[3] = BOOT_CAN_CMD_3_FAIL;
+        CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof(txBuf));
+        return;
+    }
+
+    if (flashBufferIndex != 0U)
+    {
+        firmwareCrcVerified = false;
+        txBuf[3] = BOOT_CAN_CMD_3_FAIL;
+        CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof(txBuf));
+        return;
+    }
+
+    /* CRC-32/ISO-HDLC over real firmware bytes; excludes final CAN padding. */
+    flashCrc = Boot_APP_CRC32_Software(
+        (const volatile uint8_t *)APPLICATION_START_ADDRESS,
+        firmwareExpectedSize);
+
+    firmwareCrcVerified = (flashCrc == hostCrc);
+    txBuf[3] = firmwareCrcVerified ? BOOT_CAN_CMD_3_SUCCESS : BOOT_CAN_CMD_3_FAIL;
+    txBuf[4] = (uint8_t)(flashCrc >> 24);
+    txBuf[5] = (uint8_t)(flashCrc >> 16);
+    txBuf[6] = (uint8_t)(flashCrc >> 8);
+    txBuf[7] = (uint8_t)flashCrc;
+    CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof(txBuf));
+}
+
 
 void Run_Boot_Handler(uint32_t ID, uint8_t *rxBuffer)
 {
@@ -730,6 +828,12 @@ void Run_Boot_Handler(uint32_t ID, uint8_t *rxBuffer)
                 case BOOT_CAN_CMD_0_APP_CHUNK:
                 {
                     Boot_App_Chunk_Handler();
+                    break;
+                }
+
+                case BOOT_CAN_CMD_0_APP_CRC:
+                {
+                    Boot_APP_CRC_Handler();
                     break;
                 }
 

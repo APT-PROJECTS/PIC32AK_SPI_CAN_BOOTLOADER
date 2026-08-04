@@ -41,6 +41,7 @@ static size_t totalSent = 0;
 static uint8_t chunkIndex = 1U;
 static size_t bytesSentInChunk = 0U;
 static bool waitingChunkAck = false;
+static uint32_t firmwareCrc32 = 0xFFFFFFFFU;
 
 static uint32_t otaRxStartTime = 0;
 
@@ -52,6 +53,17 @@ static OTA_CORE0_STATE_t otaCore0State = OTA_CORE0_IDLE;
 static OTA_CORE1_State_t otaCore1State = OTA_CORE1_IDLE;
 static OTA_CORE1_State_t otaPrevTxState = OTA_CORE1_IDLE;
 static OTA_REPORT_t otaReportStatus = ALREADY_UPDATED;
+
+/* CRC-32/ISO-HDLC: reflected poly, init/final XOR 0xFFFFFFFF. */
+static uint32_t OTA_CRC32_Update(uint32_t crc, const uint8_t *data, size_t length) {
+  while (length-- > 0U) {
+    crc ^= *data++;
+    for (uint8_t bit = 0U; bit < 8U; bit++) {
+      crc = (crc & 1U) ? ((crc >> 1U) ^ 0xEDB88320U) : (crc >> 1U);
+    }
+  }
+  return crc;
+}
 
 
 static void macToString(const uint8_t *mac, char *out) {
@@ -575,6 +587,7 @@ bool OTA_Handler_CORE1(void) {
           chunkIndex = 1U;
           bytesSentInChunk = 0U;
           waitingChunkAck = false;
+          firmwareCrc32 = 0xFFFFFFFFU;
           fileOpened = true;
 
           Serial.printf("OTA CORE1: Firmware size = %u bytes\n", totalFWSize);
@@ -587,7 +600,7 @@ bool OTA_Handler_CORE1(void) {
         if ((bytesSentInChunk == 0U) && (totalSent >= totalFWSize)) {
           fwFile.close();
           Serial.println("OTA CORE1: All application chunks acknowledged");
-          otaCore1State = OTA_CORE1_UPDATE_PROJECT_ID;
+          otaCore1State = OTA_CORE1_VERIFY_APP_CRC;
           break;
         }
 
@@ -605,6 +618,7 @@ bool OTA_Handler_CORE1(void) {
             otaCore0State = OTA_CORE0_REPORT;
             break;
           }
+          firmwareCrc32 = OTA_CRC32_Update(firmwareCrc32, payload, bytesToRead);
           totalSent += bytesToRead;
         }
 
@@ -632,6 +646,31 @@ bool OTA_Handler_CORE1(void) {
 
         break;
       }
+
+      // ==================================================
+    case OTA_CORE1_VERIFY_APP_CRC:
+      {
+        uint8_t txBuf[8] = { 0U };
+        uint32_t finalCrc = firmwareCrc32 ^ 0xFFFFFFFFU;
+
+        txBuf[0] = OTA_CAN_CMD_0_APP_CRC;
+        txBuf[2] = OTA_CAN_CMD_2_COMPARE;
+        txBuf[4] = (uint8_t)(finalCrc >> 24);
+        txBuf[5] = (uint8_t)(finalCrc >> 16);
+        txBuf[6] = (uint8_t)(finalCrc >> 8);
+        txBuf[7] = (uint8_t)finalCrc;
+
+        if (!CAN_WriteFrame(OTA_CAN_ID_HOST, txBuf, sizeof(txBuf))) {
+          Serial.println("OTA CORE1: APP CRC request send failed");
+          break;
+        }
+
+        Serial.printf("OTA CORE1: APP CRC = 0x%08lX sent\n", finalCrc);
+        otaPrevTxState = otaCore1State;
+        otaRxStartTime = millis();
+        otaCore1State = OTA_CORE1_CAN_RX_HANDLE;
+      }
+      break;
 
       // ==================================================
     case OTA_CORE1_UPDATE_PROJECT_ID:
@@ -888,7 +927,8 @@ bool OTA_Handler_CORE1(void) {
                                         downloadBinFile = true;
                                         Serial.println("OTA CORE1: OTA REQUIRED");
 
-                                        otaCore1State = OTA_CORE1_COMPARE_APP_SIZE;
+                                        /* Boot jump can reset the PIC, so compare size afterwards. */
+                                        otaCore1State = OTA_CORE1_BOOT_JUMP;
                                       }
                                       break;
 
@@ -998,7 +1038,7 @@ bool OTA_Handler_CORE1(void) {
                               case OTA_CAN_CMD_3_SUCCESS:
                                 {
                                   Serial.println("OTA CORE1: APP SIZE SUCCESS");
-                                  otaCore1State = OTA_CORE1_BOOT_JUMP;
+                                  otaCore1State = OTA_CORE1_APP_ERASE;
                                 }
                                 break;
 
@@ -1034,7 +1074,7 @@ bool OTA_Handler_CORE1(void) {
                               case OTA_CAN_CMD_3_SUCCESS:
                                 {
                                   Serial.println("OTA CORE1: BOOT JUMP SUCCESS");
-                                  otaCore1State = OTA_CORE1_APP_ERASE;
+                                  otaCore1State = OTA_CORE1_COMPARE_APP_SIZE;
                                 }
                                 break;
 
@@ -1137,6 +1177,32 @@ bool OTA_Handler_CORE1(void) {
                                       chunkIndex);
                         sendReport = true;
                         otaReportStatus = FIRMWARE_UPLOAD_FAIL;
+                        otaCore1State = OTA_CORE1_ERROR;
+                        otaCore0State = OTA_CORE0_REPORT;
+                      }
+                    }
+                    break;
+
+                  case OTA_CAN_CMD_0_APP_CRC:
+                    {
+                      uint32_t picCrc;
+
+                      if (rx.data[2] != OTA_CAN_CMD_2_COMPARE) {
+                        break;
+                      }
+
+                      picCrc = ((uint32_t)rx.data[4] << 24) |
+                               ((uint32_t)rx.data[5] << 16) |
+                               ((uint32_t)rx.data[6] << 8)  |
+                               ((uint32_t)rx.data[7]);
+
+                      if (rx.data[3] == OTA_CAN_CMD_3_SUCCESS) {
+                        Serial.printf("OTA CORE1: APP CRC VERIFIED (PIC: 0x%08lX)\n", picCrc);
+                        otaCore1State = OTA_CORE1_UPDATE_PROJECT_ID;
+                      } else if (rx.data[3] == OTA_CAN_CMD_3_FAIL) {
+                        Serial.printf("OTA CORE1: APP CRC MISMATCH (PIC: 0x%08lX)\n", picCrc);
+                        sendReport = true;
+                        otaReportStatus = FIRMWARE_CRC_FAIL;
                         otaCore1State = OTA_CORE1_ERROR;
                         otaCore0State = OTA_CORE0_REPORT;
                       }
@@ -1252,6 +1318,16 @@ bool OTA_Handler_CORE1(void) {
                 }
                 break;
 
+              case OTA_CORE1_VERIFY_APP_CRC:
+                {
+                  Serial.println("OTA CORE1: APPLICATION CRC VALIDATION FAILED");
+                  sendReport = true;
+                  otaReportStatus = FIRMWARE_CRC_FAIL;
+                  otaCore1State = OTA_CORE1_ERROR;
+                  otaCore0State = OTA_CORE0_REPORT;
+                }
+                break;
+
               case OTA_CORE1_UPDATE_PROJECT_ID:
               case OTA_CORE1_UPDATE_FIRMWARE_ID:
                 {
@@ -1306,6 +1382,7 @@ bool OTA_Handler_CORE1(void) {
         chunkIndex = 1U;
         bytesSentInChunk = 0U;
         waitingChunkAck = false;
+        firmwareCrc32 = 0xFFFFFFFFU;
         fileOpened = false;
 
         if (fwFile) fwFile.close();
