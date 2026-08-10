@@ -16,6 +16,7 @@ static bool firmwareUpdateActive = false;
 static bool firmwareUpdateFailed = false;
 static bool firmwareImageReady = false;
 static bool firmwareCrcVerified = false;
+static volatile bool bootStayRequested = false;
 static uint32_t firmwareExpectedSize = 0U;
 static uint8_t expectedChunkIndex = 1U;
 static uint8_t lastAcceptedChunkIndex = 0U;
@@ -277,7 +278,7 @@ void Boot_App_Size_Handler(void)
                            ((uint32_t)canRxBuffer[7]);
 
             /* Maximum allowed firmware size = Application partition - 4 KB */
-            maxAppSize = (APPLICATION_END_ADDRESS - APPLICATION_START_ADDRESS + 1U) - (2U * 1024U);
+            maxAppSize = (APPLICATION_END_ADDRESS - APPLICATION_START_ADDRESS + 1U) - (1U * 1024U);
 
             txBuf[0] = BOOT_CAN_CMD_0_APP_SIZE;
             txBuf[2] = BOOT_CAN_CMD_2_COMPARE;
@@ -775,6 +776,18 @@ void Boot_APP_CRC_Handler(void)
     CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof(txBuf));
 }
 
+void Boot_Stay_In_Boot_Handler(void)
+{
+    if (canRxBuffer[0] == BOOT_CAN_CMD_0_STAY_IN_BOOT)
+    {
+        bootStayRequested = true;
+    }
+}
+
+bool Boot_Stay_In_Boot_Requested(void)
+{
+    return bootStayRequested;
+}
 
 void Run_Boot_Handler(uint32_t ID, uint8_t *rxBuffer)
 {
@@ -830,6 +843,12 @@ void Run_Boot_Handler(uint32_t ID, uint8_t *rxBuffer)
                 case BOOT_CAN_CMD_0_APP_CRC:
                 {
                     Boot_APP_CRC_Handler();
+                    break;
+                }
+
+                case BOOT_CAN_CMD_0_STAY_IN_BOOT:
+                {
+                    Boot_Stay_In_Boot_Handler();
                     break;
                 }
 

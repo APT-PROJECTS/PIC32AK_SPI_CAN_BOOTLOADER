@@ -59,6 +59,8 @@ typedef enum {
   OTA_CAN_CMD_0_APP_CHUNK = 0x07U,
 
   OTA_CAN_CMD_0_APP_CRC = 0x08U,
+
+  OTA_CAN_CMD_0_STAY_IN_BOOT = 0x09U,
 } CAN_CMD_t;
 
 

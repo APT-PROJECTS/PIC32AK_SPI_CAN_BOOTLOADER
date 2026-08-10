@@ -2,7 +2,8 @@
 #include "mcu_config.h"
 #include "flash_eeprom.h"
 #include "middleware/boot_handler.h"
-//#include "VCU_CANdata.h"
+#include "driver_CANbus.h"
+#include "driver_mcp2515.h"
 
 uint32_t udid[4];
 
@@ -13,6 +14,8 @@ float writeMatrix[ROWS][COLS];
 
 static int MCU_ID = 0;
 static int BOOT_FLAG = 0;
+
+#define BOOT_STAY_WINDOW_COUNT    200000UL
 
 void Get_MAC_ID(void){
     udid[0] = *UDID0_ADDR;
@@ -28,7 +31,7 @@ void EEPROM_Initialize(void) {
 
 void Load_Read_Matrix(void) {
     uint32_t temp32;
-    static int ctr = 0;
+    uint32_t ctr = 0U;
 
     __builtin_memset(eepromBuffer, 0, EEPROM_DATA_SIZE);
 
@@ -87,9 +90,21 @@ void Load_Read_Matrix(void) {
         FLASH_EEPROM_Write_Page(eepromBuffer, sizeof (writeMatrix));
     }
     else{
-        for(ctr = 0; ctr <= 200000000; ctr++);
-        /* Jump to Application */
-        if (Boot_Is_App_Present() == true)
+        /*
+         * Give the host a startup window to send STAY_IN_BOOT.  Once the
+         * command is received, return to main() without jumping so its
+         * normal infinite state-engine loop continues servicing CAN.
+         */
+        while ((ctr < BOOT_STAY_WINDOW_COUNT) &&
+               !Boot_Stay_In_Boot_Requested())
+        {
+            ctr++;
+            MCP2515_Task();
+            CANbus_read();
+        }
+
+        if (!Boot_Stay_In_Boot_Requested() &&
+            (Boot_Is_App_Present() == true))
         {
             Boot_App_Jump();
         }

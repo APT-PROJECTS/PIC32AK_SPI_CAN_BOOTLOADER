@@ -16,8 +16,6 @@ int main ( void )
     
     RED_LED_Set();
     
-    EEPROM_Initialize();
-    
     for(attempt = 0U; attempt < MCP2515_STARTUP_ATTEMPTS; attempt++)
     {
         if(MCP2515_Init() == true)
@@ -26,6 +24,8 @@ int main ( void )
             break;
         }
     }
+
+    EEPROM_Initialize();
 
     while ( true )
     {
