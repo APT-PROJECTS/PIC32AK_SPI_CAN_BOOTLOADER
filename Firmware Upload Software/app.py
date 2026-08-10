@@ -118,7 +118,7 @@ class UploadService:
             if response[3] != CAN_SUCCESS:
                 raise RuntimeError("Controller rejected PIC ID read")
             pic_id.extend(response[4:8])
-        self.controller["pic_id"] = pic_id.hex().upper()
+        self.controller["pic_id"] = "-".join(pic_id.hex()[i:i+8] for i in range(0, 32, 8))
 
         for label, subcommand in (("project_id", SUB_PROJECT_ID), ("firmware_id", SUB_FIRMWARE_ID)):
             response = self._request(bytes([CMD_SOFTWARE_ID, subcommand, CAN_READ, 0, 0, 0, 0, 0]), f"Read {label}", self._reply(CMD_SOFTWARE_ID, CAN_READ, subcommand))
@@ -247,6 +247,9 @@ class UploadService:
 
         threading.Thread(target=worker, daemon=True).start()
 
+    def clear_logs(self) -> None:
+        self.logs.clear()
+
 
 service = UploadService()
 
@@ -300,6 +303,12 @@ def read_controller():
 @app.post("/api/update")
 def update():
     service.start_upload()
+    return jsonify({"ok": True})
+
+
+@app.post("/api/clear-logs")
+def clear_logs():
+    service.clear_logs()
     return jsonify({"ok": True})
 
 
