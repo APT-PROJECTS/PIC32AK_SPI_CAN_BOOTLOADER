@@ -1,0 +1,13 @@
+const $ = (id) => document.getElementById(id);
+let lastLogCount = 0;
+
+async function api(url, options = {}) { const response = await fetch(url, options); const data = await response.json(); if (!response.ok) throw new Error(data.error || 'Request failed'); return data; }
+function notify(error) { window.alert(error.message || error); }
+
+async function refreshPorts() { const ports = await api('/api/ports'); $('port').innerHTML = ports.length ? ports.map(p => `<option value="${p.device}">${p.device} — ${p.description || 'Serial port'}</option>`).join('') : '<option>No serial ports found</option>'; }
+async function connect() { await api('/api/connect',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({port:$('port').value,bitrate:+$('bitrate').value})}); }
+async function disconnect() { await api('/api/disconnect',{method:'POST'}); }
+async function uploadFile() { const file = $('firmware-file').files[0]; if (!file) return; const form = new FormData(); form.append('firmware', file); const result = await api('/api/firmware',{method:'POST',body:form}); $('file-info').textContent = `${result.name} · ${result.size.toLocaleString()} bytes · ${result.crc}`; }
+function render(status) { const s=status.status, c=status.controller; $('connection-pill').textContent = s.connected ? `● ${s.message}` : '● Disconnected'; $('connection-pill').className = `pill ${s.connected?'online':'offline'}`; $('phase').textContent=s.phase; $('progress-label').textContent=`${s.progress}%`; $('status-message').textContent=s.message; $('progress-bar').style.width=`${s.progress}%`; ['pic_id','project_id','firmware_id','app_size','crc'].forEach(k => $(k).textContent=c[k]||'—'); $('connect').disabled=s.busy||s.connected; $('disconnect').disabled=s.busy||!s.connected; $('read-info').disabled=s.busy||!s.connected; $('start-update').disabled=s.busy||!s.connected||!status.firmware; if(status.logs.length!==lastLogCount){const out=$('log-output'); out.innerHTML=status.logs.map(l=>`<div class="log-line ${l.level}"><span class="time">${l.time}</span>  ${l.message}</div>`).join(''); out.scrollTop=out.scrollHeight;lastLogCount=status.logs.length;} }
+async function poll(){try{render(await api('/api/status'));}catch(e){}setTimeout(poll,500)}
+$('refresh').onclick=()=>refreshPorts().catch(notify); $('connect').onclick=()=>connect().catch(notify); $('disconnect').onclick=()=>disconnect().catch(notify); $('firmware-file').onchange=()=>uploadFile().catch(notify); $('read-info').onclick=()=>api('/api/controller/read',{method:'POST'}).catch(notify); $('start-update').onclick=()=>api('/api/update',{method:'POST'}).catch(notify); refreshPorts().catch(notify); poll();

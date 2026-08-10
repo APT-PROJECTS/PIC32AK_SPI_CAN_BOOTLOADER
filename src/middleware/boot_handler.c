@@ -305,7 +305,7 @@ void Boot_App_Size_Handler(void)
 
             txBuf[0] = BOOT_CAN_CMD_0_APP_SIZE;
             txBuf[2] = BOOT_CAN_CMD_2_READ;
-            txBuf[3] = 0x00;
+            txBuf[3] = BOOT_CAN_CMD_3_SUCCESS;
 
             txBuf[4] = (uint8_t)(firmwareSize >> 24);
             txBuf[5] = (uint8_t)(firmwareSize >> 16);
@@ -778,10 +778,16 @@ void Boot_APP_CRC_Handler(void)
 
 void Boot_Stay_In_Boot_Handler(void)
 {
+    uint8_t txBuf[8] = {0U};
+
     if (canRxBuffer[0] == BOOT_CAN_CMD_0_STAY_IN_BOOT)
     {
         bootStayRequested = true;
     }
+    
+    txBuf[0] = BOOT_CAN_CMD_0_STAY_IN_BOOT;
+    txBuf[3] = BOOT_CAN_CMD_3_SUCCESS;
+    CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof(txBuf));
 }
 
 bool Boot_Stay_In_Boot_Requested(void)

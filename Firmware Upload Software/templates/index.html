@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CAN Firmware Uploader</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <main class="shell">
+    <header class="hero"><div><p class="eyebrow">OFFLINE SERVICE TOOL</p><h1>CAN Firmware Uploader</h1><p>Direct PIC32 firmware programming through Waveshare USB-CAN.</p></div><div id="connection-pill" class="pill offline">● Disconnected</div></header>
+    <section class="card connection"><div class="section-title"><span class="step">01</span><div><h2>Converter connection</h2><p>Select the Waveshare USB-CAN serial port and CAN bitrate.</p></div></div><div class="connection-controls"><label>COM port<select id="port"></select></label><button id="refresh" class="secondary">Refresh</button><label>CAN bitrate<select id="bitrate"><option value="500000">500 kbit/s</option><option value="250000">250 kbit/s</option><option value="1000000">1 Mbit/s</option></select></label><button id="connect" class="primary">Connect</button><button id="disconnect" class="secondary danger">Disconnect</button></div></section>
+    <section class="card progress-card"><div class="progress-head"><div><span id="phase">Idle</span><strong id="progress-label">0%</strong></div><span id="status-message">Disconnected</span></div><div class="progress-track"><div id="progress-bar"></div></div></section>
+    <section class="split"><section class="card firmware"><div class="section-title"><span class="step">02</span><div><h2>Firmware image</h2><p>Select the compiled application binary.</p></div></div><label id="drop-zone" class="drop-zone"><input id="firmware-file" type="file" accept=".bin"><span class="upload-icon">⇧</span><strong>Choose a .bin file</strong><small>Application image only · Project/Firmware IDs are not changed</small></label><div id="file-info" class="file-info">No firmware file selected</div><div class="actions"><button id="read-info" class="secondary">Read controller info</button><button id="start-update" class="primary">Start firmware update</button></div></section>
+      <section class="card controller"><div class="section-title"><span class="step">03</span><div><h2>Controller information</h2><p>Read directly over CAN.</p></div></div><dl><div><dt>PIC ID</dt><dd id="pic_id">—</dd></div><div><dt>Project ID</dt><dd id="project_id">—</dd></div><div><dt>Firmware ID</dt><dd id="firmware_id">—</dd></div><div><dt>Stored app size</dt><dd id="app_size">—</dd></div><div><dt>Application CRC</dt><dd id="crc">—</dd></div></dl></section></section>
+    <section class="card logs"><div class="section-title"><span class="step">04</span><div><h2>CAN activity log</h2><p>Live communication and upload process.</p></div></div><div id="log-output" class="log-output"><span class="muted">Waiting for activity…</span></div></section>
+  </main><script src="{{ url_for('static', filename='app.js') }}"></script>
+</body></html>
