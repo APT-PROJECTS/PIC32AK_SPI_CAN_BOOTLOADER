@@ -571,7 +571,7 @@ bool OTA_Handler_CORE1(void) {
       break;
 
       // ==================================================
-    case OTA_CORE1_SEND_APP_CHUNK:
+    case OTA_CORE1_WRITE_APP_CHUNK:
       {
         uint8_t txBuf[8] = { 0U };
 
@@ -600,7 +600,7 @@ bool OTA_Handler_CORE1(void) {
         if ((bytesSentInChunk == 0U) && (totalSent >= totalFWSize)) {
           fwFile.close();
           Serial.println("OTA CORE1: All application chunks acknowledged");
-          otaCore1State = OTA_CORE1_VERIFY_APP_CRC;
+          otaCore1State = OTA_CORE1_READ_APP_CRC;
           break;
         }
 
@@ -613,7 +613,7 @@ bool OTA_Handler_CORE1(void) {
             Serial.println("OTA CORE1: SPIFFS read failed");
             fwFile.close();
             sendReport = true;
-            otaReportStatus = FIRMWARE_UPLOAD_FAIL;
+            otaReportStatus = APP_CHUNK_WRITE_FAIL;
             otaCore1State = OTA_CORE1_ERROR;
             otaCore0State = OTA_CORE0_REPORT;
             break;
@@ -648,7 +648,7 @@ bool OTA_Handler_CORE1(void) {
       }
 
       // ==================================================
-    case OTA_CORE1_VERIFY_APP_CRC:
+    case OTA_CORE1_READ_APP_CRC:
       {
         uint8_t txBuf[8] = { 0U };
 
@@ -668,7 +668,7 @@ bool OTA_Handler_CORE1(void) {
       break;
 
       // ==================================================
-    case OTA_CORE1_UPDATE_PROJECT_ID:
+    case OTA_CORE1_WRITE_PROJECT_ID:
       {
         uint8_t txBuf[8] = { 0U };
 
@@ -695,7 +695,7 @@ bool OTA_Handler_CORE1(void) {
       break;
 
       // ==================================================
-    case OTA_CORE1_UPDATE_FIRMWARE_ID:
+    case OTA_CORE1_WRITE_FIRMWARE_ID:
       {
         uint8_t txBuf[8] = { 0U };
 
@@ -878,7 +878,7 @@ bool OTA_Handler_CORE1(void) {
                                           Serial.println("OTA CORE1: APPLICATION ID mismatch");
 
                                           sendReport = true;
-                                          otaReportStatus = APPLICATION_ID_MISMATCH;
+                                          otaReportStatus = APP_ID_MISMATCH;
 
                                           otaCore1State = OTA_CORE1_ERROR;
                                           otaCore0State = OTA_CORE0_REPORT;
@@ -961,7 +961,7 @@ bool OTA_Handler_CORE1(void) {
                                     case OTA_CAN_CMD_3_SUCCESS:
                                       {
                                         Serial.println("OTA CORE1: PROJECT_ID UPDATE SUCCESS");
-                                        otaCore1State = OTA_CORE1_UPDATE_FIRMWARE_ID;
+                                        otaCore1State = OTA_CORE1_WRITE_FIRMWARE_ID;
                                       }
                                       break;
 
@@ -969,7 +969,7 @@ bool OTA_Handler_CORE1(void) {
                                       {
                                         Serial.println("OTA CORE1: PROJECT_ID UPDATE FAIL");
                                         sendReport = true;
-                                        otaReportStatus = SOFTWARE_ID_UPDATE_FAIL;
+                                        otaReportStatus = SOFTWARE_ID_WRITE_FAIL;
 
                                         otaCore1State = OTA_CORE1_ERROR;
                                         otaCore0State = OTA_CORE0_REPORT;
@@ -999,7 +999,7 @@ bool OTA_Handler_CORE1(void) {
                                       {
                                         Serial.println("OTA CORE1: FIRMWARE_ID UPDATE FAIL");
                                         sendReport = true;
-                                        otaReportStatus = SOFTWARE_ID_UPDATE_FAIL;
+                                        otaReportStatus = SOFTWARE_ID_WRITE_FAIL;
 
                                         otaCore1State = OTA_CORE1_ERROR;
                                         otaCore0State = OTA_CORE0_REPORT;
@@ -1133,7 +1133,7 @@ bool OTA_Handler_CORE1(void) {
                         case OTA_CAN_CMD_3_SUCCESS:
                           {
                             Serial.println("OTA CORE1: APP ERASE SUCCESS");
-                            otaCore1State = OTA_CORE1_SEND_APP_CHUNK;
+                            otaCore1State = OTA_CORE1_WRITE_APP_CHUNK;
                           }
                           break;
 
@@ -1166,12 +1166,12 @@ bool OTA_Handler_CORE1(void) {
                         chunkIndex = (chunkIndex == 0xFFU) ? 1U : (uint8_t)(chunkIndex + 1U);
                         bytesSentInChunk = 0U;
                         waitingChunkAck = false;
-                        otaCore1State = OTA_CORE1_SEND_APP_CHUNK;
+                        otaCore1State = OTA_CORE1_WRITE_APP_CHUNK;
                       } else if (rx.data[3] == OTA_CAN_CMD_3_FAIL) {
                         Serial.printf("OTA CORE1: APP chunk %u rejected by bootloader\n",
                                       chunkIndex);
                         sendReport = true;
-                        otaReportStatus = FIRMWARE_UPLOAD_FAIL;
+                        otaReportStatus = APP_CHUNK_WRITE_FAIL;
                         otaCore1State = OTA_CORE1_ERROR;
                         otaCore0State = OTA_CORE0_REPORT;
                       }
@@ -1194,12 +1194,12 @@ bool OTA_Handler_CORE1(void) {
 
                       if ((rx.data[3] == OTA_CAN_CMD_3_SUCCESS) && (picCrc == hostCrc)) {
                         Serial.printf("OTA CORE1: APP CRC VERIFIED (HOST/PIC: 0x%08lX)\n", picCrc);
-                        otaCore1State = OTA_CORE1_UPDATE_PROJECT_ID;
+                        otaCore1State = OTA_CORE1_WRITE_PROJECT_ID;
                       } else {
                         Serial.printf("OTA CORE1: APP CRC MISMATCH (HOST: 0x%08lX, PIC: 0x%08lX)\n",
                                       hostCrc, picCrc);
                         sendReport = true;
-                        otaReportStatus = FIRMWARE_CRC_FAIL;
+                        otaReportStatus = APP_CRC_FAIL;
                         otaCore1State = OTA_CORE1_ERROR;
                         otaCore0State = OTA_CORE0_REPORT;
                       }
@@ -1303,35 +1303,35 @@ bool OTA_Handler_CORE1(void) {
                 }
                 break;
 
-              case OTA_CORE1_SEND_APP_CHUNK:
+              case OTA_CORE1_WRITE_APP_CHUNK:
                 {
                   Serial.println("OTA CORE1: FIRMWARE UPLOAD FAILED");
 
                   sendReport = true;
-                  otaReportStatus = FIRMWARE_UPLOAD_FAIL;
+                  otaReportStatus = APP_CHUNK_WRITE_FAIL;
 
                   otaCore1State = OTA_CORE1_ERROR;
                   otaCore0State = OTA_CORE0_REPORT;
                 }
                 break;
 
-              case OTA_CORE1_VERIFY_APP_CRC:
+              case OTA_CORE1_READ_APP_CRC:
                 {
                   Serial.println("OTA CORE1: APPLICATION CRC VALIDATION FAILED");
                   sendReport = true;
-                  otaReportStatus = FIRMWARE_CRC_FAIL;
+                  otaReportStatus = APP_CRC_FAIL;
                   otaCore1State = OTA_CORE1_ERROR;
                   otaCore0State = OTA_CORE0_REPORT;
                 }
                 break;
 
-              case OTA_CORE1_UPDATE_PROJECT_ID:
-              case OTA_CORE1_UPDATE_FIRMWARE_ID:
+              case OTA_CORE1_WRITE_PROJECT_ID:
+              case OTA_CORE1_WRITE_FIRMWARE_ID:
                 {
                   Serial.println("OTA CORE1: SOFTWARE ID UPDATE FAILED");
 
                   sendReport = true;
-                  otaReportStatus = SOFTWARE_ID_UPDATE_FAIL;
+                  otaReportStatus = SOFTWARE_ID_WRITE_FAIL;
 
                   otaCore1State = OTA_CORE1_ERROR;
                   otaCore0State = OTA_CORE0_REPORT;
