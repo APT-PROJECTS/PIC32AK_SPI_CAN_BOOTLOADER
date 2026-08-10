@@ -32,6 +32,7 @@ CMD_JUMP = 0x05
 CMD_APP_ERASE = 0x06
 CMD_APP_CHUNK = 0x07
 CMD_APP_CRC = 0x08
+CMD_BOOTLOADER_PROBE = 0x09
 SUB_PROJECT_ID = 0x01
 SUB_FIRMWARE_ID = 0x02
 SUB_BOOT_JUMP = 0x01
@@ -39,6 +40,7 @@ SUB_APP_JUMP = 0x02
 CHUNK_SIZE = 1024
 FRAME_DATA_SIZE = 4
 MAX_REQUEST_ATTEMPTS = 5
+EXPECTED_BOOTLOADER_REPLY = bytes([0x09, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00])
 
 app = Flask(__name__)
 
@@ -142,6 +144,22 @@ class UploadService:
             raise RuntimeError("Controller rejected bootloader jump")
         self.log("Controller is in bootloader mode", "success")
 
+    def _probe_bootloader(self) -> bool:
+        self.status.update(phase="Force probing bootloader", message="Sending bootloader probe frames")
+        for attempt in range(1000):
+            self._send(bytes([CMD_BOOTLOADER_PROBE, 0, 0, 0, 0, 0, 0, 0]), f"Bootloader probe {attempt + 1}/1000")
+            deadline = time.monotonic() + 0.01
+            while time.monotonic() < deadline:
+                frame = self._adapter().receive(deadline - time.monotonic())
+                if frame is None:
+                    break
+                if frame.can_id in (BOOT_CAN_ID_HOST, BOOT_CAN_ID_CLIENT):
+                    self.log(f"RX 0x{frame.can_id:03X}: {frame.data.hex(' ').upper()}")
+                if frame.can_id == BOOT_CAN_ID_CLIENT and frame.data == EXPECTED_BOOTLOADER_REPLY:
+                    return True
+            time.sleep(0.01)
+        return False
+
     def _compare_size(self, size: int) -> None:
         response = self._request(bytes([CMD_APP_SIZE, 0, CAN_COMPARE, 0]) + size.to_bytes(4, "big"), "Compare firmware size", self._reply(CMD_APP_SIZE, CAN_COMPARE))
         if response[3] != CAN_SUCCESS:
@@ -203,6 +221,15 @@ class UploadService:
         if response[3] != CAN_SUCCESS:
             raise RuntimeError("Controller rejected application jump")
 
+    def _force_upload(self) -> None:
+        if not self.firmware:
+            raise RuntimeError("Upload a .bin file first")
+        self.status.update(phase="Force update", message="Probing controller bootloader")
+        if not self._probe_bootloader():
+            raise RuntimeError("Bootloader probe failed; controller did not remain in bootloader")
+        self.log("Controller stayed in bootloader mode; starting firmware upload", "success")
+        self._upload()
+
     def _upload(self) -> None:
         if not self.firmware:
             raise RuntimeError("Upload a .bin file first")
@@ -226,6 +253,9 @@ class UploadService:
 
     def start_upload(self) -> None:
         self._start_job("Preparing update", self._upload)
+
+    def start_force_upload(self) -> None:
+        self._start_job("Preparing forced update", self._force_upload)
 
     def _start_job(self, phase: str, task) -> None:
         if not self.status["connected"]:
@@ -303,6 +333,12 @@ def read_controller():
 @app.post("/api/update")
 def update():
     service.start_upload()
+    return jsonify({"ok": True})
+
+
+@app.post("/api/force-update")
+def force_update():
+    service.start_force_upload()
     return jsonify({"ok": True})
 
 
