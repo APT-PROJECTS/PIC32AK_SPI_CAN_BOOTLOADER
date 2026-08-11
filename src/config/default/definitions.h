@@ -52,7 +52,6 @@
 #include "peripheral/gpio/plib_gpio.h"
 #include "peripheral/intc/plib_intc.h"
 #include "peripheral/spi/spi_host/plib_spi1_host.h"
-#include "peripheral/crc/plib_crc.h"
 #include "peripheral/nvm/plib_nvm.h"
 
 // DOM-IGNORE-BEGIN

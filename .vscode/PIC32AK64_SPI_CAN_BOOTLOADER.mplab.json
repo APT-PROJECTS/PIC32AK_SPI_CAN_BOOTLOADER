@@ -213,9 +213,7 @@
                 "src/middleware/boot_handler.c",
                 "src/middleware/boot_handler.h",
                 "src/driver/flash_eeprom.c",
-                "src/driver/flash_eeprom.h",
-                "src/config/default/peripheral/crc/plib_crc.h",
-                "src/config/default/peripheral/crc/plib_crc.c"
+                "src/driver/flash_eeprom.h"
             ]
         }
     ]
