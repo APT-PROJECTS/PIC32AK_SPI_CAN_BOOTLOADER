@@ -1,5 +1,24 @@
 const $ = (id) => document.getElementById(id);
+const themeKey = 'firmwareUploaderTheme';
 let lastLogCount = 0;
+
+function applyTheme(theme) {
+  document.documentElement.dataset.theme = theme;
+  const button = $('theme-toggle');
+  if (button) button.textContent = theme === 'dark' ? 'Light mode' : 'Dark mode';
+}
+
+function loadTheme() {
+  const saved = localStorage.getItem(themeKey);
+  if (saved === 'light' || saved === 'dark') return saved;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+function toggleTheme() {
+  const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+  localStorage.setItem(themeKey, next);
+  applyTheme(next);
+}
 
 async function api(url, options = {}) { const response = await fetch(url, options); const data = await response.json(); if (!response.ok) throw new Error(data.error || 'Request failed'); return data; }
 function notify(error) { window.alert(error.message || error); }
@@ -12,4 +31,4 @@ function render(status) { const s=status.status, c=status.controller; $('connect
 async function clearLog(){ await api('/api/clear-logs',{method:'POST'}); lastLogCount=0; $('log-output').innerHTML='<span class="muted">Waiting for activity…</span>'; }
 async function forceUpdate(){ $('status-message').textContent = 'Force firmware update started; restart controller if needed.'; await api('/api/force-update',{method:'POST'}); }
 async function poll(){try{render(await api('/api/status'));}catch(e){}setTimeout(poll,500)}
-$('refresh').onclick=()=>refreshPorts().catch(notify); $('connect').onclick=()=>connect().catch(notify); $('disconnect').onclick=()=>disconnect().catch(notify); $('firmware-file').onchange=()=>uploadFile().catch(notify); $('read-info').onclick=()=>api('/api/controller/read',{method:'POST'}).catch(notify); $('start-update').onclick=()=>api('/api/update',{method:'POST'}).catch(notify); $('force-update').onclick=()=>forceUpdate().catch(notify); $('clear-log').onclick=()=>clearLog().catch(notify); refreshPorts().catch(notify); poll();
+$('refresh').onclick=()=>refreshPorts().catch(notify); $('connect').onclick=()=>connect().catch(notify); $('disconnect').onclick=()=>disconnect().catch(notify); $('firmware-file').onchange=()=>uploadFile().catch(notify); $('read-info').onclick=()=>api('/api/controller/read',{method:'POST'}).catch(notify); $('start-update').onclick=()=>api('/api/update',{method:'POST'}).catch(notify); $('force-update').onclick=()=>forceUpdate().catch(notify); $('clear-log').onclick=()=>clearLog().catch(notify); $('theme-toggle').onclick=()=>toggleTheme(); applyTheme(loadTheme()); refreshPorts().catch(notify); poll();
