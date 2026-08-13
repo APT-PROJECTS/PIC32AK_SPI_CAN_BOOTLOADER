@@ -9,7 +9,8 @@
 #define EEPROM_NUM_PAGES      1
 
 // For PIC32AK6416GC41064, reserve the last 4 KB flash page.
-#define EEPROM_PAGE1_ADDR     0x80F000
+//#define EEPROM_PAGE1_ADDR     0x80F000      // 64KB
+#define EEPROM_PAGE1_ADDR     0x81F000        // 128KB
 
 #define EEPROM_VALID_MARKER   0xFFFFFFFE
 

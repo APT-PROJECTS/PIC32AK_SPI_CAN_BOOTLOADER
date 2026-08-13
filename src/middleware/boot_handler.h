@@ -8,17 +8,31 @@
 extern "C" {
 #endif    
     
+///* =====================================================
+// * FLASH MEMORY MAP       // 64KB
+// * =====================================================*/
+//#define BOOTLOADER_START_ADDRESS        (0x800000UL)
+//#define BOOTLOADER_END_ADDRESS          (0x807FFFUL)
+//    
+//#define APPLICATION_START_ADDRESS       (0x808000UL)
+//#define APPLICATION_END_ADDRESS         (0x80EFFFUL)
+//
+//#define EEPROM_START_ADDRESS            (0x80F000UL)
+//#define EEPROM_END_ADDRESS              (0x80FFFFUL)
+//
+//#define APPLICATION_IVT_ADDRESS         (APPLICATION_START_ADDRESS + 0x40U)
+    
 /* =====================================================
- * FLASH MEMORY MAP
+ * FLASH MEMORY MAP         // 128KB
  * =====================================================*/
 #define BOOTLOADER_START_ADDRESS        (0x800000UL)
 #define BOOTLOADER_END_ADDRESS          (0x807FFFUL)
     
 #define APPLICATION_START_ADDRESS       (0x808000UL)
-#define APPLICATION_END_ADDRESS         (0x80EFFFUL)
+#define APPLICATION_END_ADDRESS         (0x81EFFFUL)
 
-#define EEPROM_START_ADDRESS            (0x80F000UL)
-#define EEPROM_END_ADDRESS              (0x80FFFFUL)
+#define EEPROM_START_ADDRESS            (0x81F000UL)
+#define EEPROM_END_ADDRESS              (0x81FFFFUL)
 
 #define APPLICATION_IVT_ADDRESS         (APPLICATION_START_ADDRESS + 0x40U)
     
