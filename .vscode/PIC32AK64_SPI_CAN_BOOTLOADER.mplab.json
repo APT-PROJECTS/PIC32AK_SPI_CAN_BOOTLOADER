@@ -5,7 +5,7 @@
         {
             "name": "default",
             "id": "",
-            "device": "PIC32AK6416GC41064",
+            "device": "PIC32AK1216GC41064",
             "imageType": "application",
             "imagePath": "./out/PIC32AK64_SPI_CAN_BOOTLOADER/default.elf",
             "toolProperties": "default-tool-base",
@@ -163,9 +163,9 @@
             "properties": {
                 "AutoSelectMemRanges": "auto",
                 "memories.programmemory": true,
-                "memories.programmemory.ranges": "800000-80ffff",
+                "memories.programmemory.ranges": "800000-81ffff",
                 "programoptions.preserveprogramrange": true,
-                "programoptions.preserveprogram.ranges": "808000-80ffff"
+                "programoptions.preserveprogram.ranges": "808000-81ffff"
             }
         }
     ],
@@ -213,7 +213,9 @@
                 "src/middleware/boot_handler.c",
                 "src/middleware/boot_handler.h",
                 "src/driver/flash_eeprom.c",
-                "src/driver/flash_eeprom.h"
+                "src/driver/flash_eeprom.h",
+                "Firmware Upload Software/pytest-cache-files-_gc7p0yd/.gitignore",
+                "Firmware Upload Software/pytest-cache-files-ygjky4ad/.gitignore"
             ]
         }
     ]
