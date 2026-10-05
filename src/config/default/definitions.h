@@ -63,7 +63,7 @@ extern "C" {
 // DOM-IGNORE-END
 
 /* Device Information */
-#define DEVICE_NAME          "PIC32AK6416GC41064"
+#define DEVICE_NAME          "PIC32AK1216GC41064"
 #define DEVICE_ARCH          "PIC32A"
 #define DEVICE_FAMILY        "PIC32AK1216GC41064"
 #define DEVICE_SERIES        "PIC32AK"

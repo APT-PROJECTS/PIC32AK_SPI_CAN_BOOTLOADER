@@ -1,8 +1,6 @@
-#include <string.h>
 #include "definitions.h"
-#include "boot_handler.h"
-#include "../driver/driver_CANbus.h"
-#include "../driver/device_stat.h"
+#include "driver.h"
+#include "middleware.h"
 
 #define FLASH_CHUNK_SIZE    1024U
 #define FLASH_ROW_SIZE      (NVM_FLASH_ROWSIZE * sizeof(uint32_t))
@@ -28,7 +26,7 @@ typedef void (*APP_ENTRY_FUNC)(void);
 void Boot_PIC_ID_Handler(void)
 {
     uint8_t txBuf[8];
-    uint32_t udidValue;
+    uint32_t picid;
 
     if (canRxBuffer[0] != BOOT_CAN_CMD_0_PIC_ID)
     {
@@ -59,30 +57,34 @@ void Boot_PIC_ID_Handler(void)
 
             switch (canRxBuffer[1])
             {
-                case BOOT_CAN_CMD_1_PIC_ID_1:
-                    udidValue = udid[0];
+                case BOOT_CAN_CMD_1_PIC_MAC_ID_1:
+                    picid = udid[0];
                     break;
 
-                case BOOT_CAN_CMD_1_PIC_ID_2:
-                    udidValue = udid[1];
+                case BOOT_CAN_CMD_1_PIC_MAC_ID_2:
+                    picid = udid[1];
                     break;
 
-                case BOOT_CAN_CMD_1_PIC_ID_3:
-                    udidValue = udid[2];
+                case BOOT_CAN_CMD_1_PIC_MAC_ID_3:
+                    picid = udid[2];
                     break;
 
-                case BOOT_CAN_CMD_1_PIC_ID_4:
-                    udidValue = udid[3];
+                case BOOT_CAN_CMD_1_PIC_MAC_ID_4:
+                    picid = udid[3];
+                    break;
+                    
+                case BOOT_CAN_CMD_1_PIC_DEVICE_ID:
+                    picid = devid;
                     break;
 
                 default:
                     return;
             }
 
-            txBuf[4] = (uint8_t)(udidValue >> 24);
-            txBuf[5] = (uint8_t)(udidValue >> 16);
-            txBuf[6] = (uint8_t)(udidValue >> 8);
-            txBuf[7] = (uint8_t)(udidValue);
+            txBuf[4] = (uint8_t)(picid >> 24);
+            txBuf[5] = (uint8_t)(picid >> 16);
+            txBuf[6] = (uint8_t)(picid >> 8);
+            txBuf[7] = (uint8_t)(picid);
 
             CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof(txBuf));
             break;
@@ -117,6 +119,10 @@ void Boot_Software_ID_Handler(void) {
 
                 case BOOT_CAN_CMD_1_FIRMWARE_ID:
                     softwareId = R_FIRMWARE_ID;
+                    break;
+                    
+                case BOOT_CAN_CMD_1_BOOT_VERSION:
+                    softwareId = R_BOOT_VERSION;
                     break;
 
                 default:
@@ -231,6 +237,7 @@ void Boot_Status_Handler(void)
 
             txBuf[0] = BOOT_CAN_CMD_0_STATUS;
             txBuf[2] = BOOT_CAN_CMD_2_READ;
+            txBuf[3] = BOOT_CAN_CMD_3_SUCCESS;
 
             if ((addr >= BOOTLOADER_START_ADDRESS) &&
                 (addr <= BOOTLOADER_END_ADDRESS))
@@ -563,7 +570,7 @@ void Boot_App_Erase_Handler(void)
     CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof(txBuf));
 }
 
-static bool App_Firmware_Write_Flash(void)
+bool App_Firmware_Write_Flash(void)
 {
     uint32_t rowAddr;
     uint32_t offset;
@@ -630,12 +637,12 @@ static bool App_Firmware_Write_Flash(void)
     return true;
 }
 
-static uint8_t Next_Chunk_Index(uint8_t chunkIndex)
+uint8_t Next_Chunk_Index(uint8_t chunkIndex)
 {
     return (chunkIndex == 0xFFU) ? 1U : (uint8_t)(chunkIndex + 1U);
 }
 
-static void Boot_App_Chunk_Ack(uint8_t chunkIndex, uint8_t result)
+void Boot_App_Chunk_Ack(uint8_t chunkIndex, uint8_t result)
 {
     uint8_t txBuf[8] = {0U};
 
@@ -695,7 +702,7 @@ void Boot_App_Chunk_Handler(void)
     Boot_App_Chunk_Ack(chunkIndex, BOOT_CAN_CMD_3_SUCCESS);
 }
 
-static uint32_t Boot_APP_CRC32_Software(const volatile uint8_t *data, uint32_t length)
+uint32_t Boot_APP_CRC32_Software(const volatile uint8_t *data, uint32_t length)
 {
     uint32_t crc = 0xFFFFFFFFU;
     uint8_t bit;

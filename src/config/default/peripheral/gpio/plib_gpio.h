@@ -56,26 +56,26 @@
 // Section: Data types and constants
 
 
-/*** Macros for MCC_CS pin ***/
-#define MCC_CS_Set()               (_LATC8 = 1U)
-#define MCC_CS_Clear()             (_LATC8 = 0U)
-#define MCC_CS_Toggle()            (_LATC8 ^= 1U)
-#define MCC_CS_OutputEnable()      (_TRISC8 = 0U)
-#define MCC_CS_InputEnable()       (_TRISC8 = 1U)
-#define MCC_CS_Get()               ((PORTC >> 8) & 0x1)
-#define MCC_CS_PIN                 GPIO_PIN_RC8
+/*** Macros for MCP2515_CS pin ***/
+#define MCP2515_CS_Set()               (_LATC8 = 1U)
+#define MCP2515_CS_Clear()             (_LATC8 = 0U)
+#define MCP2515_CS_Toggle()            (_LATC8 ^= 1U)
+#define MCP2515_CS_OutputEnable()      (_TRISC8 = 0U)
+#define MCP2515_CS_InputEnable()       (_TRISC8 = 1U)
+#define MCP2515_CS_Get()               ((PORTC >> 8) & 0x1)
+#define MCP2515_CS_PIN                 GPIO_PIN_RC8
 
-/*** Macros for MCC_SCK pin ***/
-#define MCC_SCK_Get()               ((PORTC >> 9) & 0x1)
-#define MCC_SCK_PIN                 GPIO_PIN_RC9
+/*** Macros for MCP2515_SCK pin ***/
+#define MCP2515_SCK_Get()               ((PORTC >> 9) & 0x1)
+#define MCP2515_SCK_PIN                 GPIO_PIN_RC9
 
-/*** Macros for MCC_SDI pin ***/
-#define MCC_SDI_Get()               ((PORTC >> 6) & 0x1)
-#define MCC_SDI_PIN                 GPIO_PIN_RC6
+/*** Macros for MCP2515_SDI pin ***/
+#define MCP2515_SDI_Get()               ((PORTC >> 6) & 0x1)
+#define MCP2515_SDI_PIN                 GPIO_PIN_RC6
 
-/*** Macros for MCC_SDO pin ***/
-#define MCC_SDO_Get()               ((PORTC >> 7) & 0x1)
-#define MCC_SDO_PIN                 GPIO_PIN_RC7
+/*** Macros for MCP2515_SDO pin ***/
+#define MCP2515_SDO_Get()               ((PORTC >> 7) & 0x1)
+#define MCP2515_SDO_PIN                 GPIO_PIN_RC7
 
 /*** Macros for GREEN_LED pin ***/
 #define GREEN_LED_Set()               (_LATD6 = 1U)

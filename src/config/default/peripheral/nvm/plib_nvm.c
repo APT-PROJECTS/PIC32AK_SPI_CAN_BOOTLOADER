@@ -73,7 +73,7 @@ typedef enum
     NVM_PAGE_ERASE_OPERATION              = 0x4003,
 } NVM_OPERATION_MODE;
 
-volatile static nvmCallbackObjType nvmCallbackObj;
+static volatile nvmCallbackObjType nvmCallbackObj;
 /* ************************************************************************** */
 /* ************************************************************************** */
 // Section: Local Functions                                                   */

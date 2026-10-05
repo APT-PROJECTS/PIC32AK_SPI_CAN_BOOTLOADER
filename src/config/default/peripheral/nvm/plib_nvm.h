@@ -69,7 +69,7 @@
   @ingroup  nvm
   @brief    This macro defines the size of the NVM flash
 */
-#define NVM_FLASH_SIZE             (0xf000U)
+#define NVM_FLASH_SIZE             (0x1f000U)
 /**
   @ingroup  nvm
   @brief    This macro defines the size of the one NVM flash row

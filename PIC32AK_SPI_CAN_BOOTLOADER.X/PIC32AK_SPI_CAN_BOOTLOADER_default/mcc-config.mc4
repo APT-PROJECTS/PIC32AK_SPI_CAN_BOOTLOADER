@@ -1,0 +1,56 @@
+configVersion: 1.0.0
+coreVersion: 5.8.4
+spaHostVersion: 1.2.1
+device: PIC32AK1216GC41064
+deviceLibrary: {}
+groupModules: []
+modules:
+- core
+- dfp
+- nvm
+- spi1
+generatedFileHashHistoryMap:
+- file: ..\src\config\default\definitions.h
+  hash: ee5626a7f65e99553a54c41789e51bd2923bae7e3fe43dee959533d12a823f4b
+- file: ..\src\config\default\device.h
+  hash: ae9334f1f1a7868eb3f27a0a2a9100a31af74d1fd227d97e20cc04d39e272e05
+- file: ..\src\config\default\initialization.c
+  hash: c54df68092717e322f48d0c4178bc8b8897f8e0d8f928bfb18e331d22744980f
+- file: ..\src\config\default\interrupts.c
+  hash: a14ffa690c4285d06a820667ed63687eea4ad9c05c44dc3a7b5fb34d46659a9c
+- file: ..\src\config\default\interrupts.h
+  hash: cc453dbd48f4dd07aec162607487a1b5df3510e2f5f4eb2b3c4677e3c039832f
+- file: ..\src\config\default\peripheral\clk\plib_clk.c
+  hash: 2ffe5261657bb0514d8aae6d538121629299ac6fe93250e3e63af75cb4a135d0
+- file: ..\src\config\default\peripheral\clk\plib_clk.h
+  hash: 9b3f1b4580f7a48136dd2d7b3a88e6d726212c400f7daa8b49649889085b9d52
+- file: ..\src\config\default\peripheral\clk\plib_clk_common.h
+  hash: eef1f2bb06ca84239b4c79659fca909ebed461905c0b447fac7e756f5d3fd6d3
+- file: ..\src\config\default\peripheral\gpio\plib_gpio.c
+  hash: e636efdd7be14a98418574ebe57e33fb4e1485c5e3323add89ed0a3c0d65bbd9
+- file: ..\src\config\default\peripheral\gpio\plib_gpio.h
+  hash: 07094efd5386e1e2c00b12da01d5fc00e0c43024d341ff198f23d7af7651c97d
+- file: ..\src\config\default\peripheral\intc\plib_intc.c
+  hash: 1c8871647b2ab4467879aaabc54739d8040bab5111d8a2bb33c1d0867bd8ca1d
+- file: ..\src\config\default\peripheral\intc\plib_intc.h
+  hash: 0564f0ee0ba838e065edc667db20250a5dbea83eb542b265c08a63aca3efd1f3
+- file: ..\src\config\default\peripheral\nvm\plib_nvm.c
+  hash: 75b458a14f2f3487273ce6c47dd20ea3b5add60f78bfe86b1357a5b4919cbf3b
+- file: ..\src\config\default\peripheral\nvm\plib_nvm.h
+  hash: 635faf8f606687efb4c720be0db689db40079b398adaf5c267236e4cce081308
+- file: ..\src\config\default\peripheral\spi\spi_host\plib_spi1_host.c
+  hash: 98078036e5ae9e474a6cfbe7cd688334ff211a0e4855fa789e5f707190ce09e0
+- file: ..\src\config\default\peripheral\spi\spi_host\plib_spi1_host.h
+  hash: 7e1ca3384fd8ac73b039b7da694592fd4e367f4299774a27c08c0e2c4ab5197a
+- file: ..\src\config\default\peripheral\spi\spi_host\plib_spi_host_common.h
+  hash: 4e997ee2119b82472aad6910255c6ce24a7238f2a895edc971711f88cd31b482
+- file: ..\src\config\default\stdio\xc32_monitor.c
+  hash: 858f8710d4287200a5ee7f3b3ad7c24f505aed9c05c16956ab0ff9f7bb162a6a
+- file: ..\src\config\default\toolchain_specifics.h
+  hash: 78571a6e6145134a0c036d2baad436dca288274dff817bace866c1d7ab859c5f
+- file: ..\src\config\default\traps.c
+  hash: 5a673af06bb30101885ac0e3c34c0795ed19f29fb8680502913a7e276a21f704
+- file: ..\src\config\default\traps.h
+  hash: 2148b2447edd4c09d31f5aa91ff926b1229449dd59810484139352672cad5d57
+- file: ..\src\main.c
+  hash: d3c233d419e6304bfacbafc18cc68c0f5c26e365f23b20ea40ccfac458f664c5

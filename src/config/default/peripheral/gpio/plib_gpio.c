@@ -1,19 +1,19 @@
 /*******************************************************************************
   GPIO PLIB
- 
+
   Company:
     Microchip Technology Inc.
- 
+
   File Name:
     plib_gpio.h
- 
+
   Summary:
     GPIO PLIB Header File
- 
+
   Description:
     This file has prototype of all the interfaces provided for particular
     gpio peripheral.
- 
+
 *******************************************************************************/
 /*******************************************************************************
 * Copyright (C) 2025 Microchip Technology Inc. and its subsidiaries.
@@ -41,15 +41,15 @@
 #include "plib_gpio.h"
 #include "interrupts.h"
 /**
-* @brief   Offset value between registers LAT, TRIS, PORT 
+* @brief   Offset value between registers LAT, TRIS, PORT
 */
-#define OFFSET_REG (uint32_t)0x14UL 
+#define OFFSET_REG (uint32_t)0x14UL
 
 /**
 * @brief  Offset value between two interrupt registers CNEN0, CNEN1, CNCON
 */
-#define OFFSET_INT (uint32_t)0x24UL 
- 
+#define OFFSET_INT (uint32_t)0x24UL
+
 /**
 * @brief   Macro to lock registers for PPS configuration.
 */
@@ -65,7 +65,7 @@
 void GPIO_Initialize ( void )
 {
      /*PORTC Initialization */
-    LATC = 0x100U; /* Initial Latch Value */
+    LATC = 0x0U; /* Initial Latch Value */
     TRISC = 0xeffU; /* Direction Control */
      /*PORTD Initialization */
     LATD = 0x0U; /* Initial Latch Value */
@@ -84,7 +84,7 @@ void GPIO_Initialize ( void )
 
     /* Lock back the system after PPS configuration */
     PINS_PPSLock();
-        
+
 
 }
 

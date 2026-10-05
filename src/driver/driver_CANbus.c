@@ -1,8 +1,6 @@
-#include "device.h"
 #include "definitions.h"
-#include "driver_CANbus.h"
-#include "driver_mcp2515.h"
-#include "../middleware/boot_handler.h"
+#include "driver.h"
+#include "middleware.h"
 
 void CANbus_write(uint32_t Sadr, uint8_t *Sdata, uint8_t Sdata_L) {
     bool sstat;

@@ -1,5 +1,5 @@
 #include "definitions.h"
-#include "driver_mcp2515.h"
+#include "driver.h"
 
 /* MCP2515 Commands */
 #define MCP2515_RESET_CMD        0xC0
@@ -111,11 +111,11 @@ static bool MCP2515_FrameEnqueue(uint8_t *fifo, uint8_t *head, uint8_t *count, u
 static bool MCP2515_FrameDequeue(uint8_t *fifo, uint8_t *tail, uint8_t *count, uint32_t *id, bool *extended, uint8_t *dlc, uint8_t *data);
 
 static void MCP2515_Select(void) {
-    MCC_CS_Clear();
+    MCP2515_CS_Clear();
 }
 
 static void MCP2515_Deselect(void) {
-    MCC_CS_Set();
+    MCP2515_CS_Set();
 }
 
 static void MCP2515_Delay(void) {
@@ -322,7 +322,7 @@ bool MCP2515_Init(void)
     MCP2515_AsyncRegisterCallback();
 
     /* Configure CS Pin */
-    MCC_CS_OutputEnable();
+    MCP2515_CS_OutputEnable();
 
     MCP2515_Deselect();
 

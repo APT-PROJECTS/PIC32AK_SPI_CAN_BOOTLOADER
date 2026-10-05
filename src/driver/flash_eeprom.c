@@ -1,6 +1,5 @@
-#include <string.h>
 #include "definitions.h"
-#include "flash_eeprom.h"
+#include "driver.h"
 
 typedef struct {
     uint32_t marker;

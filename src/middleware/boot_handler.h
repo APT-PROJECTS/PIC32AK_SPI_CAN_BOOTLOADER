@@ -1,8 +1,7 @@
-#ifndef _BOOT_HANDLER_NAME_H 
-#define _BOOT_HANDLER_NAME_H
+#ifndef _BOOT_HANDLER_H 
+#define _BOOT_HANDLER_H
 
-#include <stdbool.h>
-#include <stdint.h>
+#include "definitions.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -56,14 +55,16 @@ typedef enum {
   BOOT_CAN_CMD_3_FAIL = 0x02,
 
   BOOT_CAN_CMD_0_PIC_ID = 0x01U,
-  BOOT_CAN_CMD_1_PIC_ID_1 = 0x01U,
-  BOOT_CAN_CMD_1_PIC_ID_2 = 0x02U,
-  BOOT_CAN_CMD_1_PIC_ID_3 = 0x03U,
-  BOOT_CAN_CMD_1_PIC_ID_4 = 0x04U,
+  BOOT_CAN_CMD_1_PIC_MAC_ID_1 = 0x01U,
+  BOOT_CAN_CMD_1_PIC_MAC_ID_2 = 0x02U,
+  BOOT_CAN_CMD_1_PIC_MAC_ID_3 = 0x03U,
+  BOOT_CAN_CMD_1_PIC_MAC_ID_4 = 0x04U,
+  BOOT_CAN_CMD_1_PIC_DEVICE_ID = 0x05U,
 
   BOOT_CAN_CMD_0_SOFTWARE_ID = 0x02U,
   BOOT_CAN_CMD_1_PROJECT_ID = 0x01U,
   BOOT_CAN_CMD_1_FIRMWARE_ID = 0x02U,
+  BOOT_CAN_CMD_1_BOOT_VERSION = 0x03,
 
   BOOT_CAN_CMD_0_STATUS = 0x03U,
   BOOT_CAN_CMD_1_STATUS_BOOT = 0x01U,
@@ -97,11 +98,11 @@ bool Boot_Is_App_Present(void);
 void Boot_App_Jump(void);
 void Boot_Jump_Handler(void);
 void Boot_App_Erase_Handler(void);
-static bool App_Firmware_Write_Flash(void);
-static void Boot_App_Chunk_Ack(uint8_t chunkIndex, uint8_t result);
-static uint8_t Next_Chunk_Index(uint8_t chunkIndex);
+bool App_Firmware_Write_Flash(void);
+void Boot_App_Chunk_Ack(uint8_t chunkIndex, uint8_t result);
+uint8_t Next_Chunk_Index(uint8_t chunkIndex);
 void Boot_App_Chunk_Handler(void);
-static uint32_t Boot_APP_CRC32_Software(const volatile uint8_t *data, uint32_t length);
+uint32_t Boot_APP_CRC32_Software(const volatile uint8_t *data, uint32_t length);
 void Boot_APP_CRC_Handler(void);
 void Boot_Stay_In_Boot_Handler(void);
 bool Boot_Stay_In_Boot_Requested(void);
