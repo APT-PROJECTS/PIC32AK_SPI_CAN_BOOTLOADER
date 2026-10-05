@@ -725,6 +725,7 @@ void Boot_APP_CRC_Handler(void)
 {
     uint8_t txBuf[8] = {0U};
     uint32_t flashCrc;
+    uint32_t crcLength;
 
     if ((canRxBuffer[0] != BOOT_CAN_CMD_0_APP_CRC) ||
         (canRxBuffer[2] != BOOT_CAN_CMD_2_READ))
@@ -735,51 +736,51 @@ void Boot_APP_CRC_Handler(void)
     txBuf[0] = BOOT_CAN_CMD_0_APP_CRC;
     txBuf[2] = BOOT_CAN_CMD_2_READ;
 
-    /* Every 1 KiB CAN chunk must have been acknowledged and written first. */
-    if (!firmwareUpdateActive)
+    /*
+     * During firmware update, use the current firmware size.
+     * Otherwise, use the previously stored application size.
+     */
+    crcLength = (firmwareUpdateActive &&
+                 (firmwareExpectedSize != 0U))
+                    ? firmwareExpectedSize
+                    : (uint32_t)R_APP_SIZE;
+
+    if (firmwareUpdateActive && firmwareUpdateFailed)
     {
-        firmwareCrcVerified = false;
         txBuf[3] = BOOT_CAN_CMD_3_FAIL;
         CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof(txBuf));
         return;
     }
 
-    if (firmwareUpdateFailed)
+    /* Do not calculate CRC while a partial chunk is still buffered. */
+    if (firmwareUpdateActive && (flashBufferIndex != 0U))
     {
-        firmwareCrcVerified = false;
         txBuf[3] = BOOT_CAN_CMD_3_FAIL;
         CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof(txBuf));
         return;
     }
 
-    if (firmwareExpectedSize == 0U)
+    if ((crcLength == 0U) ||
+        (crcLength > (APPLICATION_END_ADDRESS -
+                      APPLICATION_START_ADDRESS + 1U)))
     {
-        firmwareCrcVerified = false;
         txBuf[3] = BOOT_CAN_CMD_3_FAIL;
         CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof(txBuf));
         return;
     }
 
-    if (flashBufferIndex != 0U)
-    {
-        firmwareCrcVerified = false;
-        txBuf[3] = BOOT_CAN_CMD_3_FAIL;
-        CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof(txBuf));
-        return;
-    }
-
-    /* CRC-32/ISO-HDLC over real firmware bytes; excludes final CAN padding. */
     flashCrc = Boot_APP_CRC32_Software(
         (const volatile uint8_t *)APPLICATION_START_ADDRESS,
-        firmwareExpectedSize);
+        crcLength);
 
-    /* The OTA host compares this returned CRC with its source-file CRC. */
     firmwareCrcVerified = true;
+
     txBuf[3] = BOOT_CAN_CMD_3_SUCCESS;
     txBuf[4] = (uint8_t)(flashCrc >> 24);
     txBuf[5] = (uint8_t)(flashCrc >> 16);
     txBuf[6] = (uint8_t)(flashCrc >> 8);
     txBuf[7] = (uint8_t)flashCrc;
+
     CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof(txBuf));
 }
 
