@@ -32,7 +32,7 @@ Command:
   --defsym=__MPLAB_DEBUG=1 \
   --defsym=__DEBUG=1 \
   --defsym=__MPLAB_DEBUGGER_PICKITBASIC=1 \
-  -Tp32AK1216GC41064.gld.00 \
+  -TBOOT_p32AK1216GC41064.gld.00 \
   --heap=0 \
   --data-init \
   --gc-sections \
@@ -151,7 +151,7 @@ __ivt_0                   0x800004               0x47c           0x47c  (1148)
 .text.NVM_ErrorGet        0x8031e4                0x10            0x10  (16)
 .text.NVM_IsBusy          0x8031f4                0x10            0x10  (16)
 .text.SPI1_CallbackRegister  0x803204                0x10            0x10  (16)
-C:\Users\HP\AppData\Local\Temp\cc38cWcs.s.scn1  0x803214                0x10            0x10  (16)
+C:\Users\HP\AppData\Local\Temp\ccuqB64y.s.scn1  0x803214                0x10            0x10  (16)
 .text.SPI1_Write          0x803224                 0xc             0xc  (12)
 .text.TRAPS_halt_on_error  0x803230                 0xc             0xc  (12)
 .text.erase_page          0x80323c                 0xc             0xc  (12)
@@ -4653,9 +4653,9 @@ __ivt_0           0x800004        0x47c
                   0x803204         0x10 build/default/debug/_ext/1868329136/plib_spi1_host.o
                   0x803204                  _SPI1_CallbackRegister
 
-C:\Users\HP\AppData\Local\Temp\cc38cWcs.s.scn1
+C:\Users\HP\AppData\Local\Temp\ccuqB64y.s.scn1
                   0x803214         0x10
- C:\Users\HP\AppData\Local\Temp\cc38cWcs.s.scn1
+ C:\Users\HP\AppData\Local\Temp\ccuqB64y.s.scn1
                   0x803214         0x10 build/default/debug/_ext/362756510/flash_eeprom.o
 
 .text.SPI1_Write
