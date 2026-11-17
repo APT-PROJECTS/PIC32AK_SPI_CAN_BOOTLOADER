@@ -151,7 +151,7 @@ __ivt_0                   0x800004               0x47c           0x47c  (1148)
 .text.NVM_ErrorGet        0x8031e4                0x10            0x10  (16)
 .text.NVM_IsBusy          0x8031f4                0x10            0x10  (16)
 .text.SPI1_CallbackRegister  0x803204                0x10            0x10  (16)
-C:\Users\HP\AppData\Local\Temp\ccuqB64y.s.scn1  0x803214                0x10            0x10  (16)
+C:\Users\HP\AppData\Local\Temp\cc6XvvbV.s.scn1  0x803214                0x10            0x10  (16)
 .text.SPI1_Write          0x803224                 0xc             0xc  (12)
 .text.TRAPS_halt_on_error  0x803230                 0xc             0xc  (12)
 .text.erase_page          0x80323c                 0xc             0xc  (12)
@@ -456,7 +456,7 @@ Discarded input sections
  .text.read         0x0000          0x8 build/default/debug/_ext/163028504/xc32_monitor.o
  .text.write        0x0000          0x8 build/default/debug/_ext/163028504/xc32_monitor.o
  .debug_frame       0x0000         0x34 build/default/debug/_ext/163028504/xc32_monitor.o
- .debug_info        0x0000        0x27f build/default/debug/_ext/163028504/xc32_monitor.o
+ .debug_info        0x0000        0x286 build/default/debug/_ext/163028504/xc32_monitor.o
  .debug_abbrev      0x0000         0x93 build/default/debug/_ext/163028504/xc32_monitor.o
  .debug_loc         0x0000         0x42 build/default/debug/_ext/163028504/xc32_monitor.o
  .debug_aranges
@@ -818,23 +818,23 @@ __FWPUCB
  .comment           0x05be         0x5c c:/program files/microchip/xc32/v5.00/pic32a/bin/bin/../../lib\libc99-elf.a(memcmp.GENERIC-32PIC-AK_o)
  .comment           0x061a         0x5c c:/program files/microchip/xc32/v5.00/pic32a/bin/bin/../../lib\libc99-elf.a(memcpy.GENERIC-32PIC-AK_o)
 
-.debug_info         0x0000       0x9dca
+.debug_info         0x0000       0x9e33
  *(.debug_info)
- .debug_info        0x0000        0xab7 build/default/debug/_ext/60165520/plib_clk.o
- .debug_info        0x0ab7        0x779 build/default/debug/_ext/1865254177/plib_gpio.o
- .debug_info        0x1230        0x868 build/default/debug/_ext/1865312166/plib_intc.o
- .debug_info        0x1a98        0xec0 build/default/debug/_ext/60176403/plib_nvm.o
- .debug_info        0x2958       0x1b19 build/default/debug/_ext/1868329136/plib_spi1_host.o
- .debug_info        0x4471        0x30e build/default/debug/_ext/1171490990/initialization.o
- .debug_info        0x477f        0x353 build/default/debug/_ext/1171490990/interrupts.o
- .debug_info        0x4ad2        0x840 build/default/debug/_ext/1171490990/traps.o
- .debug_info        0x5312        0x45f build/default/debug/_ext/362756510/driver_CANbus.o
- .debug_info        0x5771       0x18ef build/default/debug/_ext/362756510/driver_mcp2515.o
- .debug_info        0x7060        0xc27 build/default/debug/_ext/362756510/flash_eeprom.o
- .debug_info        0x7c87       0x14b8 build/default/debug/_ext/1375476428/boot_handler.o
- .debug_info        0x913f        0x4fc build/default/debug/_ext/1375476428/device_startup.o
- .debug_info        0x963b        0x336 build/default/debug/_ext/1200941409/state_engine.o
- .debug_info        0x9971        0x459 build/default/debug/_ext/1360937237/main.o
+ .debug_info        0x0000        0xabe build/default/debug/_ext/60165520/plib_clk.o
+ .debug_info        0x0abe        0x780 build/default/debug/_ext/1865254177/plib_gpio.o
+ .debug_info        0x123e        0x86f build/default/debug/_ext/1865312166/plib_intc.o
+ .debug_info        0x1aad        0xec7 build/default/debug/_ext/60176403/plib_nvm.o
+ .debug_info        0x2974       0x1b20 build/default/debug/_ext/1868329136/plib_spi1_host.o
+ .debug_info        0x4494        0x315 build/default/debug/_ext/1171490990/initialization.o
+ .debug_info        0x47a9        0x35a build/default/debug/_ext/1171490990/interrupts.o
+ .debug_info        0x4b03        0x847 build/default/debug/_ext/1171490990/traps.o
+ .debug_info        0x534a        0x466 build/default/debug/_ext/362756510/driver_CANbus.o
+ .debug_info        0x57b0       0x18f6 build/default/debug/_ext/362756510/driver_mcp2515.o
+ .debug_info        0x70a6        0xc2e build/default/debug/_ext/362756510/flash_eeprom.o
+ .debug_info        0x7cd4       0x14bf build/default/debug/_ext/1375476428/boot_handler.o
+ .debug_info        0x9193        0x503 build/default/debug/_ext/1375476428/device_startup.o
+ .debug_info        0x9696        0x33d build/default/debug/_ext/1200941409/state_engine.o
+ .debug_info        0x99d3        0x460 build/default/debug/_ext/1360937237/main.o
  *(.gnu.linkonce.wi.*)
 
 .debug_abbrev       0x0000       0x1681
@@ -4653,9 +4653,9 @@ __ivt_0           0x800004        0x47c
                   0x803204         0x10 build/default/debug/_ext/1868329136/plib_spi1_host.o
                   0x803204                  _SPI1_CallbackRegister
 
-C:\Users\HP\AppData\Local\Temp\ccuqB64y.s.scn1
+C:\Users\HP\AppData\Local\Temp\cc6XvvbV.s.scn1
                   0x803214         0x10
- C:\Users\HP\AppData\Local\Temp\ccuqB64y.s.scn1
+ C:\Users\HP\AppData\Local\Temp\cc6XvvbV.s.scn1
                   0x803214         0x10 build/default/debug/_ext/362756510/flash_eeprom.o
 
 .text.SPI1_Write
