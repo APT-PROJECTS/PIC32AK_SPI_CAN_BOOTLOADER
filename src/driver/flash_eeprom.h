@@ -3,8 +3,9 @@
 
 #include "definitions.h"
 
-#define EEPROM_DATA_SIZE      4064
-#define FLASH_PAGE_SIZE       4096
+#define FLASH_PAGE_SIZE       4096UL
+#define EEPROM_HEADER_SIZE    32UL
+#define EEPROM_DATA_SIZE      (FLASH_PAGE_SIZE - EEPROM_HEADER_SIZE)
 #define EEPROM_NUM_PAGES      1
 
 // For PIC32AK6416GC41064, reserve the last 4 KB flash page.
@@ -21,12 +22,15 @@ typedef enum
     FLASH_EEPROM_NO_VALID_PAGE
 } FLASH_EEPROM_STATUS;
 
+extern uint8_t eepromBuffer[EEPROM_DATA_SIZE];
 
-FLASH_EEPROM_STATUS FLASH_EEPROM_Init(void);
-FLASH_EEPROM_STATUS FLASH_EEPROM_Write_Page(uint8_t *data, uint32_t length);
-FLASH_EEPROM_STATUS FLASH_EEPROM_Read_Page(uint8_t *data, uint32_t length);
-FLASH_EEPROM_STATUS FLASH_EEPROM_WriteWord(uint32_t address, uint32_t data);
-FLASH_EEPROM_STATUS FLASH_EEPROM_ReadWord(uint32_t address, uint32_t *data);
-FLASH_EEPROM_STATUS FLASH_EEPROM_EraseAll(void);
+
+FLASH_EEPROM_STATUS Flash_EEPROM_Init(void);
+FLASH_EEPROM_STATUS Flash_EEPROM_Write_Page(const uint8_t *data, uint32_t length);
+FLASH_EEPROM_STATUS Flash_EEPROM_Read_Page(uint8_t *data, uint32_t length);
+FLASH_EEPROM_STATUS Flash_EEPROM_Write_Word(uint32_t address, uint32_t data,
+                                            uint8_t *buffer);
+FLASH_EEPROM_STATUS Flash_EEPROM_Read_Word(uint32_t address, uint32_t *data);
+FLASH_EEPROM_STATUS Flash_EEPROM_Erase_All(void);
 
 #endif

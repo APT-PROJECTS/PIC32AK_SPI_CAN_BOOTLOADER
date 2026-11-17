@@ -17,7 +17,9 @@ void STATE_ENGINE_Tasks(void) {
     switch (currentState) {
         case STATE_INIT:
         {
-            Get_PIC_ID();
+            MCP2515_Init();
+            Flash_EEPROM_Init();
+            Metadata_Init();
             currentState = STATE_RUN;
             break;
         }

@@ -9,7 +9,7 @@ build/default/debug/_ext/362756510/flash_eeprom.o: \
  ../src/config/default/peripheral/spi/spi_host/plib_spi1_host.h \
  ../src/config/default/peripheral/spi/spi_host/plib_spi_host_common.h \
  ../src/config/default/peripheral/nvm/plib_nvm.h ../src/driver.h \
- ../src/driver/driver_CANbus.h ../src/driver/driver_mcp2515.h \
+ ../src/driver/driver_can.h ../src/driver/driver_mcp2515.h \
  ../src/driver/flash_eeprom.h
 
 ../src/config/default/definitions.h:
@@ -34,7 +34,7 @@ build/default/debug/_ext/362756510/flash_eeprom.o: \
 
 ../src/driver.h:
 
-../src/driver/driver_CANbus.h:
+../src/driver/driver_can.h:
 
 ../src/driver/driver_mcp2515.h:
 

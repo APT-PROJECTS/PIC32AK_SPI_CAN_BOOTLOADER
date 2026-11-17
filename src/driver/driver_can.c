@@ -9,7 +9,7 @@ void CANbus_write(uint32_t Sadr, uint8_t *Sdata, uint8_t Sdata_L) {
     /* Standard CAN ID (11-bit) */
     if (Sadr <= 0x7FFU) {
         idType = false;
-    }        /* Extended CAN ID (29-bit) */
+    }/* Extended CAN ID (29-bit) */
     else {
         idType = true;
     }
@@ -30,10 +30,18 @@ void CANbus_read(void) {
 
     if (rstat) {
         rstat = 0;
-        
-        // For OTA Bootloader Updates
-        if (msg_id == BOOT_CAN_ID_HOST) {
-            Run_Boot_Handler(msg_id, Rdata);
+
+        switch (msg_id) {
+
+            case BOOT_CAN_ID_HOST:
+            {
+                Run_Boot_Handler(msg_id, Rdata);
+                break;
+            }
+
+            default:
+                break;
         }
     }
+    Nop();
 }
