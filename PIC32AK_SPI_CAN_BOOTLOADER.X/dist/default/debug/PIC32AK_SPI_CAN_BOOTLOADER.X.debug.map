@@ -93,91 +93,91 @@ __ivt_0                   0x800004               0x47c           0x47c  (1148)
 .text                     0x800480               0xc74           0xc74  (3188)
 .dinit                    0x8010f4               0x4e0           0x4e0  (1248)
 .text.MCP2515_Task        0x8015d4               0x400           0x400  (1024)
-.text.Boot_Jump_Handler   0x8019d4               0x1e0           0x1e0  (480)
-.text.SPI1_WriteRead      0x801bb4               0x1bc           0x1bc  (444)
-.text.Metadata_Init       0x801d70               0x1ac           0x1ac  (428)
-.text.Flash_EEPROM_Write_Page  0x801f1c               0x188           0x188  (392)
-.text.Boot_App_Size_Handler  0x8020a4               0x160           0x160  (352)
-.text.MCP2515_FrameDequeue  0x802204               0x154           0x154  (340)
-.text.CLOCK_Initialize    0x802358               0x14c           0x14c  (332)
-.text.Boot_App_Erase_Handler  0x8024a4               0x14c           0x14c  (332)
-.text.SPI1RX_InterruptHandler  0x8025f0               0x140           0x140  (320)
-.text.Boot_APP_CRC_Handler  0x802730               0x134           0x134  (308)
-.text.MCP2515_FrameEnqueue  0x802864               0x128           0x128  (296)
-.text.App_Firmware_Write_Flash  0x80298c               0x120           0x120  (288)
-.text.Boot_App_Chunk_Handler  0x802aac               0x110           0x110  (272)
-.text.Boot_PIC_ID_Handler  0x802bbc               0x108           0x108  (264)
-.text.Boot_Metadata_Handler  0x802cc4               0x108           0x108  (264)
-.text.MCP2515_Init        0x802dcc                0xf4            0xf4  (244)
-.text.Run_Boot_Handler    0x802ec0                0xc8            0xc8  (200)
-.text.Get_Software_ID     0x802f88                0xc8            0xc8  (200)
-.text.Boot_Status_Handler  0x803050                0xa8            0xa8  (168)
-.text.SPI_FIFO_Fill       0x8030f8                0x90            0x90  (144)
-.text.Get_Model_Number    0x803188                0x8c            0x8c  (140)
-.text.MCP2515_StartWriteTransaction  0x803214                0x80            0x80  (128)
-.text.MCP2515_StartReadTransaction  0x803294                0x7c            0x7c  (124)
-.text.Page_Is_Valid       0x803310                0x78            0x78  (120)
-.text.Flash_EEPROM_Read_Page  0x803388                0x78            0x78  (120)
-.text.SPI1TX_InterruptHandler  0x803400                0x70            0x70  (112)
-.text.Calculate_CRC       0x803470                0x70            0x70  (112)
-.text.Boot_App_Jump       0x8034e0                0x70            0x70  (112)
-.text.Get_Part_Number     0x803550                0x68            0x68  (104)
-.text.SPI1E_InterruptHandler  0x8035b8                0x64            0x64  (100)
-.text.GPIO_Initialize     0x80361c                0x60            0x60  (96)
-.text.Flash_EEPROM_Init   0x80367c                0x5c            0x5c  (92)
-.text.Get_PIC_ID          0x8036d8                0x5c            0x5c  (92)
-.text.Get_Firmware_ID     0x803734                0x5c            0x5c  (92)
-.text.CANbus_read         0x803790                0x50            0x50  (80)
-.text.Boot_Stay_In_Boot_Handler  0x8037e0                0x50            0x50  (80)
-.text.NVM_QuadWordWrite   0x803830                0x4c            0x4c  (76)
-.text.SPI1_Initialize     0x80387c                0x4c            0x4c  (76)
-.text.Boot_APP_CRC32_Software  0x8038c8                0x4c            0x4c  (76)
-.text.MCP2515_ReadRegister  0x803914                0x48            0x48  (72)
-.text.Write_Quad_Word     0x80395c                0x48            0x48  (72)
-.text.Boot_App_Chunk_Ack  0x8039a4                0x48            0x48  (72)
-.text.INTC_Initialize     0x8039ec                0x44            0x44  (68)
-.text.Build_Metadata      0x803a30                0x44            0x44  (68)
-.text.MCP2515_BitModify   0x803a74                0x3c            0x3c  (60)
-.text.Find_Latest_Page    0x803ab0                0x3c            0x3c  (60)
-.text.STATE_ENGINE_Tasks  0x803aec                0x3c            0x3c  (60)
-.text.MCP2515_Reset       0x803b28                0x38            0x38  (56)
-.text.MCP2515_WriteRegister  0x803b60                0x38            0x38  (56)
-.text.NVM_RowWrite        0x803b98                0x30            0x30  (48)
-.text.MCP2515_Delay       0x803bc8                0x30            0x30  (48)
-.text.Boot_Is_App_Present  0x803bf8                0x2c            0x2c  (44)
-.text.SPI1_IsBusy         0x803c24                0x28            0x28  (40)
-.text.MCP2515_AsyncBitModify  0x803c4c                0x28            0x28  (40)
-.text.MCP2515_DelayMs     0x803c74                0x24            0x24  (36)
-.text.MCP2515_AsyncRegisterCallback  0x803c98                0x24            0x24  (36)
-.text.MCP2515_AsyncReadRegister  0x803cbc                0x24            0x24  (36)
-.text.MCP2515_SendMessage  0x803ce0                0x24            0x24  (36)
-.text.Flash_Wait_Complete  0x803d04                0x24            0x24  (36)
-.text.CANbus_write        0x803d28                0x24            0x24  (36)
-.text.SYS_Initialize      0x803d4c                0x20            0x20  (32)
-.text.MCP2515_AsyncResetState  0x803d6c                0x20            0x20  (32)
-.text.NVM_InterruptHandler  0x803d8c                0x1c            0x1c  (28)
-.text.MCP2515_AsyncRtsTx0  0x803da8                0x1c            0x1c  (28)
-.text.MCP2515_ReceiveMessage  0x803dc4                0x1c            0x1c  (28)
-.text.NVM_PageErase       0x803de0                0x18            0x18  (24)
-.text.MCP2515_FifoWriteByte  0x803df8                0x18            0x18  (24)
-.text.MCP2515_FifoReadByte  0x803e10                0x18            0x18  (24)
-.text.Next_Chunk_Index    0x803e28                0x18            0x18  (24)
-.text.NVM_StartOperationAtAddress  0x803e40                0x14            0x14  (20)
-.text.NVM_Read            0x803e54                0x14            0x14  (20)
-.text.MCP2515_SPI_Callback  0x803e68                0x14            0x14  (20)
-.text.main                0x803e7c                0x14            0x14  (20)
-.text.NVM_Initialize      0x803e90                0x10            0x10  (16)
-.text.NVM_ErrorGet        0x803ea0                0x10            0x10  (16)
-.text.NVM_IsBusy          0x803eb0                0x10            0x10  (16)
-.text.SPI1_CallbackRegister  0x803ec0                0x10            0x10  (16)
-C:\Users\HP\AppData\Local\Temp\ccnnSvcC.s.scn1  0x803ed0                0x10            0x10  (16)
-.text.SPI1_Write          0x803ee0                 0xc             0xc  (12)
-.text.TRAPS_halt_on_error  0x803eec                 0xc             0xc  (12)
-.text.Erase_Page          0x803ef8                 0xc             0xc  (12)
-.text.MCP2515_Select      0x803f04                 0x8             0x8  (8)
-.text.MCP2515_Deselect    0x803f0c                 0x8             0x8  (8)
+.text.Metadata_Init       0x8019d4               0x31c           0x31c  (796)
+.text.Boot_Jump_Handler   0x801cf0               0x1e0           0x1e0  (480)
+.text.SPI1_WriteRead      0x801ed0               0x1bc           0x1bc  (444)
+.text.Flash_EEPROM_Write_Page  0x80208c               0x188           0x188  (392)
+.text.Boot_App_Size_Handler  0x802214               0x160           0x160  (352)
+.text.MCP2515_FrameDequeue  0x802374               0x154           0x154  (340)
+.text.CLOCK_Initialize    0x8024c8               0x14c           0x14c  (332)
+.text.Boot_App_Erase_Handler  0x802614               0x14c           0x14c  (332)
+.text.SPI1RX_InterruptHandler  0x802760               0x140           0x140  (320)
+.text.Boot_APP_CRC_Handler  0x8028a0               0x134           0x134  (308)
+.text.MCP2515_FrameEnqueue  0x8029d4               0x128           0x128  (296)
+.text.App_Firmware_Write_Flash  0x802afc               0x120           0x120  (288)
+.text.Boot_App_Chunk_Handler  0x802c1c               0x110           0x110  (272)
+.text.Boot_PIC_ID_Handler  0x802d2c               0x108           0x108  (264)
+.text.Boot_Metadata_Handler  0x802e34               0x108           0x108  (264)
+.text.MCP2515_Init        0x802f3c                0xf4            0xf4  (244)
+.text.Run_Boot_Handler    0x803030                0xc8            0xc8  (200)
+.text.Get_Software_ID     0x8030f8                0xc8            0xc8  (200)
+.text.Boot_Status_Handler  0x8031c0                0xa8            0xa8  (168)
+.text.SPI_FIFO_Fill       0x803268                0x90            0x90  (144)
+.text.Get_Model_Number    0x8032f8                0x8c            0x8c  (140)
+.text.MCP2515_StartWriteTransaction  0x803384                0x80            0x80  (128)
+.text.MCP2515_StartReadTransaction  0x803404                0x7c            0x7c  (124)
+.text.Page_Is_Valid       0x803480                0x78            0x78  (120)
+.text.Flash_EEPROM_Read_Page  0x8034f8                0x78            0x78  (120)
+.text.SPI1TX_InterruptHandler  0x803570                0x70            0x70  (112)
+.text.Calculate_CRC       0x8035e0                0x70            0x70  (112)
+.text.Boot_App_Jump       0x803650                0x70            0x70  (112)
+.text.Get_Part_Number     0x8036c0                0x68            0x68  (104)
+.text.SPI1E_InterruptHandler  0x803728                0x64            0x64  (100)
+.text.GPIO_Initialize     0x80378c                0x60            0x60  (96)
+.text.Flash_EEPROM_Init   0x8037ec                0x5c            0x5c  (92)
+.text.Get_PIC_ID          0x803848                0x5c            0x5c  (92)
+.text.Get_Firmware_ID     0x8038a4                0x5c            0x5c  (92)
+.text.CANbus_read         0x803900                0x50            0x50  (80)
+.text.Boot_Stay_In_Boot_Handler  0x803950                0x50            0x50  (80)
+.text.NVM_QuadWordWrite   0x8039a0                0x4c            0x4c  (76)
+.text.SPI1_Initialize     0x8039ec                0x4c            0x4c  (76)
+.text.Boot_APP_CRC32_Software  0x803a38                0x4c            0x4c  (76)
+.text.MCP2515_ReadRegister  0x803a84                0x48            0x48  (72)
+.text.Write_Quad_Word     0x803acc                0x48            0x48  (72)
+.text.Boot_App_Chunk_Ack  0x803b14                0x48            0x48  (72)
+.text.INTC_Initialize     0x803b5c                0x44            0x44  (68)
+.text.Build_Metadata      0x803ba0                0x44            0x44  (68)
+.text.MCP2515_BitModify   0x803be4                0x3c            0x3c  (60)
+.text.Find_Latest_Page    0x803c20                0x3c            0x3c  (60)
+.text.STATE_ENGINE_Tasks  0x803c5c                0x3c            0x3c  (60)
+.text.MCP2515_Reset       0x803c98                0x38            0x38  (56)
+.text.MCP2515_WriteRegister  0x803cd0                0x38            0x38  (56)
+.text.NVM_RowWrite        0x803d08                0x30            0x30  (48)
+.text.MCP2515_Delay       0x803d38                0x30            0x30  (48)
+.text.Boot_Is_App_Present  0x803d68                0x2c            0x2c  (44)
+.text.SPI1_IsBusy         0x803d94                0x28            0x28  (40)
+.text.MCP2515_AsyncBitModify  0x803dbc                0x28            0x28  (40)
+.text.MCP2515_DelayMs     0x803de4                0x24            0x24  (36)
+.text.MCP2515_AsyncRegisterCallback  0x803e08                0x24            0x24  (36)
+.text.MCP2515_AsyncReadRegister  0x803e2c                0x24            0x24  (36)
+.text.MCP2515_SendMessage  0x803e50                0x24            0x24  (36)
+.text.Flash_Wait_Complete  0x803e74                0x24            0x24  (36)
+.text.CANbus_write        0x803e98                0x24            0x24  (36)
+.text.SYS_Initialize      0x803ebc                0x20            0x20  (32)
+.text.MCP2515_AsyncResetState  0x803edc                0x20            0x20  (32)
+.text.NVM_InterruptHandler  0x803efc                0x1c            0x1c  (28)
+.text.MCP2515_AsyncRtsTx0  0x803f18                0x1c            0x1c  (28)
+.text.MCP2515_ReceiveMessage  0x803f34                0x1c            0x1c  (28)
+.text.NVM_PageErase       0x803f50                0x18            0x18  (24)
+.text.MCP2515_FifoWriteByte  0x803f68                0x18            0x18  (24)
+.text.MCP2515_FifoReadByte  0x803f80                0x18            0x18  (24)
+.text.Next_Chunk_Index    0x803f98                0x18            0x18  (24)
+.text.NVM_StartOperationAtAddress  0x803fb0                0x14            0x14  (20)
+.text.NVM_Read            0x803fc4                0x14            0x14  (20)
+.text.MCP2515_SPI_Callback  0x803fd8                0x14            0x14  (20)
+.text.main                0x803fec                0x14            0x14  (20)
+.text.NVM_Initialize      0x804000                0x10            0x10  (16)
+.text.NVM_ErrorGet        0x804010                0x10            0x10  (16)
+.text.NVM_IsBusy          0x804020                0x10            0x10  (16)
+.text.SPI1_CallbackRegister  0x804030                0x10            0x10  (16)
+C:\Users\HP\AppData\Local\Temp\ccov1Dj8.s.scn1  0x804040                0x10            0x10  (16)
+.text.SPI1_Write          0x804050                 0xc             0xc  (12)
+.text.TRAPS_halt_on_error  0x80405c                 0xc             0xc  (12)
+.text.Erase_Page          0x804068                 0xc             0xc  (12)
+.text.MCP2515_Select      0x804074                 0x8             0x8  (8)
+.text.MCP2515_Deselect    0x80407c                 0x8             0x8  (8)
 
-                   Total "program" memory used (bytes):         0x3f10  (16144) 49%
+                   Total "program" memory used (bytes):         0x4080  (16512) 50%
 
 
 "data" Memory  [Origin = 0x4000, Length = 0x4000]
@@ -373,115 +373,115 @@ External Symbols in Program Memory (by address):
                   0x80102c                  ___uflow
                   0x801074                  ___toread
                   0x8015d4                  _MCP2515_Task
-                  0x8019d4                  _Boot_Jump_Handler
-                  0x801bb4                  _SPI1_WriteRead
-                  0x801d70                  _Metadata_Init
-                  0x801f1c                  _Flash_EEPROM_Write_Page
-                  0x8020a4                  _Boot_App_Size_Handler
-                  0x802358                  _CLOCK_Initialize
-                  0x8024a4                  _Boot_App_Erase_Handler
-                  0x8025f0                  _SPI1RX_InterruptHandler
-                  0x802730                  _Boot_APP_CRC_Handler
-                  0x80298c                  _App_Firmware_Write_Flash
-                  0x802aac                  _Boot_App_Chunk_Handler
-                  0x802bbc                  _Boot_PIC_ID_Handler
-                  0x802cc4                  _Boot_Metadata_Handler
-                  0x802dcc                  _MCP2515_Init
-                  0x802ec0                  _Run_Boot_Handler
-                  0x802f88                  _Get_Software_ID
-                  0x803050                  _Boot_Status_Handler
-                  0x803188                  _Get_Model_Number
-                  0x803388                  _Flash_EEPROM_Read_Page
-                  0x803400                  _SPI1TX_InterruptHandler
-                  0x8034e0                  _Boot_App_Jump
-                  0x803550                  _Get_Part_Number
-                  0x8035b8                  _SPI1E_InterruptHandler
-                  0x80361c                  _GPIO_Initialize
-                  0x80367c                  _Flash_EEPROM_Init
-                  0x8036d8                  _Get_PIC_ID
-                  0x803734                  _Get_Firmware_ID
-                  0x803790                  _CANbus_read
-                  0x8037e0                  _Boot_Stay_In_Boot_Handler
-                  0x803830                  _NVM_QuadWordWrite
-                  0x80387c                  _SPI1_Initialize
-                  0x8038c8                  _Boot_APP_CRC32_Software
-                  0x8039a4                  _Boot_App_Chunk_Ack
-                  0x8039ec                  _INTC_Initialize
-                  0x803a30                  _Build_Metadata
-                  0x803aec                  _STATE_ENGINE_Tasks
-                  0x803b98                  _NVM_RowWrite
-                  0x803bf8                  _Boot_Is_App_Present
-                  0x803c24                  _SPI1_IsBusy
-                  0x803ce0                  _MCP2515_SendMessage
-                  0x803d28                  _CANbus_write
-                  0x803d4c                  _SYS_Initialize
-                  0x803d8c                  _NVM_InterruptHandler
-                  0x803dc4                  _MCP2515_ReceiveMessage
-                  0x803de0                  _NVM_PageErase
-                  0x803e28                  _Next_Chunk_Index
-                  0x803e54                  _NVM_Read
-                  0x803e7c                  _main
-                  0x803e90                  _NVM_Initialize
-                  0x803ea0                  _NVM_ErrorGet
-                  0x803eb0                  _NVM_IsBusy
-                  0x803ec0                  _SPI1_CallbackRegister
-                  0x803ee0                  _SPI1_Write
+                  0x8019d4                  _Metadata_Init
+                  0x801cf0                  _Boot_Jump_Handler
+                  0x801ed0                  _SPI1_WriteRead
+                  0x80208c                  _Flash_EEPROM_Write_Page
+                  0x802214                  _Boot_App_Size_Handler
+                  0x8024c8                  _CLOCK_Initialize
+                  0x802614                  _Boot_App_Erase_Handler
+                  0x802760                  _SPI1RX_InterruptHandler
+                  0x8028a0                  _Boot_APP_CRC_Handler
+                  0x802afc                  _App_Firmware_Write_Flash
+                  0x802c1c                  _Boot_App_Chunk_Handler
+                  0x802d2c                  _Boot_PIC_ID_Handler
+                  0x802e34                  _Boot_Metadata_Handler
+                  0x802f3c                  _MCP2515_Init
+                  0x803030                  _Run_Boot_Handler
+                  0x8030f8                  _Get_Software_ID
+                  0x8031c0                  _Boot_Status_Handler
+                  0x8032f8                  _Get_Model_Number
+                  0x8034f8                  _Flash_EEPROM_Read_Page
+                  0x803570                  _SPI1TX_InterruptHandler
+                  0x803650                  _Boot_App_Jump
+                  0x8036c0                  _Get_Part_Number
+                  0x803728                  _SPI1E_InterruptHandler
+                  0x80378c                  _GPIO_Initialize
+                  0x8037ec                  _Flash_EEPROM_Init
+                  0x803848                  _Get_PIC_ID
+                  0x8038a4                  _Get_Firmware_ID
+                  0x803900                  _CANbus_read
+                  0x803950                  _Boot_Stay_In_Boot_Handler
+                  0x8039a0                  _NVM_QuadWordWrite
+                  0x8039ec                  _SPI1_Initialize
+                  0x803a38                  _Boot_APP_CRC32_Software
+                  0x803b14                  _Boot_App_Chunk_Ack
+                  0x803b5c                  _INTC_Initialize
+                  0x803ba0                  _Build_Metadata
+                  0x803c5c                  _STATE_ENGINE_Tasks
+                  0x803d08                  _NVM_RowWrite
+                  0x803d68                  _Boot_Is_App_Present
+                  0x803d94                  _SPI1_IsBusy
+                  0x803e50                  _MCP2515_SendMessage
+                  0x803e98                  _CANbus_write
+                  0x803ebc                  _SYS_Initialize
+                  0x803efc                  _NVM_InterruptHandler
+                  0x803f34                  _MCP2515_ReceiveMessage
+                  0x803f50                  _NVM_PageErase
+                  0x803f98                  _Next_Chunk_Index
+                  0x803fc4                  _NVM_Read
+                  0x803fec                  _main
+                  0x804000                  _NVM_Initialize
+                  0x804010                  _NVM_ErrorGet
+                  0x804020                  _NVM_IsBusy
+                  0x804030                  _SPI1_CallbackRegister
+                  0x804050                  _SPI1_Write
 
 External Symbols in Program Memory (by name):
 
-                  0x80298c                  _App_Firmware_Write_Flash
-                  0x8038c8                  _Boot_APP_CRC32_Software
-                  0x802730                  _Boot_APP_CRC_Handler
-                  0x8039a4                  _Boot_App_Chunk_Ack
-                  0x802aac                  _Boot_App_Chunk_Handler
-                  0x8024a4                  _Boot_App_Erase_Handler
-                  0x8034e0                  _Boot_App_Jump
-                  0x8020a4                  _Boot_App_Size_Handler
-                  0x803bf8                  _Boot_Is_App_Present
-                  0x8019d4                  _Boot_Jump_Handler
-                  0x802cc4                  _Boot_Metadata_Handler
-                  0x802bbc                  _Boot_PIC_ID_Handler
-                  0x803050                  _Boot_Status_Handler
-                  0x8037e0                  _Boot_Stay_In_Boot_Handler
-                  0x803a30                  _Build_Metadata
-                  0x803790                  _CANbus_read
-                  0x803d28                  _CANbus_write
-                  0x802358                  _CLOCK_Initialize
-                  0x80367c                  _Flash_EEPROM_Init
-                  0x803388                  _Flash_EEPROM_Read_Page
-                  0x801f1c                  _Flash_EEPROM_Write_Page
-                  0x80361c                  _GPIO_Initialize
-                  0x803734                  _Get_Firmware_ID
-                  0x803188                  _Get_Model_Number
-                  0x8036d8                  _Get_PIC_ID
-                  0x803550                  _Get_Part_Number
-                  0x802f88                  _Get_Software_ID
-                  0x8039ec                  _INTC_Initialize
-                  0x802dcc                  _MCP2515_Init
-                  0x803dc4                  _MCP2515_ReceiveMessage
-                  0x803ce0                  _MCP2515_SendMessage
+                  0x802afc                  _App_Firmware_Write_Flash
+                  0x803a38                  _Boot_APP_CRC32_Software
+                  0x8028a0                  _Boot_APP_CRC_Handler
+                  0x803b14                  _Boot_App_Chunk_Ack
+                  0x802c1c                  _Boot_App_Chunk_Handler
+                  0x802614                  _Boot_App_Erase_Handler
+                  0x803650                  _Boot_App_Jump
+                  0x802214                  _Boot_App_Size_Handler
+                  0x803d68                  _Boot_Is_App_Present
+                  0x801cf0                  _Boot_Jump_Handler
+                  0x802e34                  _Boot_Metadata_Handler
+                  0x802d2c                  _Boot_PIC_ID_Handler
+                  0x8031c0                  _Boot_Status_Handler
+                  0x803950                  _Boot_Stay_In_Boot_Handler
+                  0x803ba0                  _Build_Metadata
+                  0x803900                  _CANbus_read
+                  0x803e98                  _CANbus_write
+                  0x8024c8                  _CLOCK_Initialize
+                  0x8037ec                  _Flash_EEPROM_Init
+                  0x8034f8                  _Flash_EEPROM_Read_Page
+                  0x80208c                  _Flash_EEPROM_Write_Page
+                  0x80378c                  _GPIO_Initialize
+                  0x8038a4                  _Get_Firmware_ID
+                  0x8032f8                  _Get_Model_Number
+                  0x803848                  _Get_PIC_ID
+                  0x8036c0                  _Get_Part_Number
+                  0x8030f8                  _Get_Software_ID
+                  0x803b5c                  _INTC_Initialize
+                  0x802f3c                  _MCP2515_Init
+                  0x803f34                  _MCP2515_ReceiveMessage
+                  0x803e50                  _MCP2515_SendMessage
                   0x8015d4                  _MCP2515_Task
-                  0x801d70                  _Metadata_Init
-                  0x803ea0                  _NVM_ErrorGet
-                  0x803e90                  _NVM_Initialize
-                  0x803d8c                  _NVM_InterruptHandler
-                  0x803eb0                  _NVM_IsBusy
-                  0x803de0                  _NVM_PageErase
-                  0x803830                  _NVM_QuadWordWrite
-                  0x803e54                  _NVM_Read
-                  0x803b98                  _NVM_RowWrite
-                  0x803e28                  _Next_Chunk_Index
-                  0x802ec0                  _Run_Boot_Handler
-                  0x8035b8                  _SPI1E_InterruptHandler
-                  0x8025f0                  _SPI1RX_InterruptHandler
-                  0x803400                  _SPI1TX_InterruptHandler
-                  0x803ec0                  _SPI1_CallbackRegister
-                  0x80387c                  _SPI1_Initialize
-                  0x803c24                  _SPI1_IsBusy
-                  0x803ee0                  _SPI1_Write
-                  0x801bb4                  _SPI1_WriteRead
-                  0x803aec                  _STATE_ENGINE_Tasks
-                  0x803d4c                  _SYS_Initialize
+                  0x8019d4                  _Metadata_Init
+                  0x804010                  _NVM_ErrorGet
+                  0x804000                  _NVM_Initialize
+                  0x803efc                  _NVM_InterruptHandler
+                  0x804020                  _NVM_IsBusy
+                  0x803f50                  _NVM_PageErase
+                  0x8039a0                  _NVM_QuadWordWrite
+                  0x803fc4                  _NVM_Read
+                  0x803d08                  _NVM_RowWrite
+                  0x803f98                  _Next_Chunk_Index
+                  0x803030                  _Run_Boot_Handler
+                  0x803728                  _SPI1E_InterruptHandler
+                  0x802760                  _SPI1RX_InterruptHandler
+                  0x803570                  _SPI1TX_InterruptHandler
+                  0x804030                  _SPI1_CallbackRegister
+                  0x8039ec                  _SPI1_Initialize
+                  0x803d94                  _SPI1_IsBusy
+                  0x804050                  _SPI1_Write
+                  0x801ed0                  _SPI1_WriteRead
+                  0x803c5c                  _STATE_ENGINE_Tasks
+                  0x803ebc                  _SYS_Initialize
                   0x800840                  __DefaultInterrupt
                   0x80058c                  __NVMInterrupt
                   0x800694                  __SPI1EInterrupt
@@ -496,7 +496,7 @@ External Symbols in Program Memory (by name):
                   0x80052c                  __data_init_extended
                   0x800004                  __ivt_0
                   0x800480                  __resetPRI
-                  0x803e7c                  _main
+                  0x803fec                  _main
                   0x80084c                  _memcmp
                   0x80087c                  _memcpy
                   0x800908                  _strtoul
@@ -988,7 +988,7 @@ __FWPUCB
  .comment           0x07e6         0x5c c:/program files/microchip/xc32/v5.00/pic32a/bin/bin/../../lib\libc99-elf.a(__toread.GENERIC-32PIC-AK_o)
  .comment           0x0842         0x5c c:/program files/microchip/xc32/v5.00/pic32a/bin/bin/../../lib\libc99-elf.a(__errno_location.GENERIC-32PIC-AK_o)
 
-.debug_info         0x0000       0x9f8e
+.debug_info         0x0000       0xa04d
  *(.debug_info)
  .debug_info        0x0000        0xabe build/default/debug/_ext/60165520/plib_clk.o
  .debug_info        0x0abe        0x780 build/default/debug/_ext/1865254177/plib_gpio.o
@@ -1004,10 +1004,10 @@ __FWPUCB
  .debug_info        0x7bf2        0x41e build/default/debug/_ext/1360937237/main.o
  .debug_info        0x8010        0x434 build/default/debug/_ext/362756510/driver_can.o
  .debug_info        0x8444       0x12aa build/default/debug/_ext/1375476428/boot.o
- .debug_info        0x96ee        0x8a0 build/default/debug/_ext/1375476428/metadata.o
+ .debug_info        0x96ee        0x95f build/default/debug/_ext/1375476428/metadata.o
  *(.gnu.linkonce.wi.*)
 
-.debug_abbrev       0x0000       0x1693
+.debug_abbrev       0x0000       0x1699
  *(.debug_abbrev)
  .debug_abbrev      0x0000         0xc3 build/default/debug/_ext/60165520/plib_clk.o
  .debug_abbrev      0x00c3        0x108 build/default/debug/_ext/1865254177/plib_gpio.o
@@ -1023,9 +1023,9 @@ __FWPUCB
  .debug_abbrev      0x10a7         0xd7 build/default/debug/_ext/1360937237/main.o
  .debug_abbrev      0x117e        0x108 build/default/debug/_ext/362756510/driver_can.o
  .debug_abbrev      0x1286        0x2d4 build/default/debug/_ext/1375476428/boot.o
- .debug_abbrev      0x155a        0x139 build/default/debug/_ext/1375476428/metadata.o
+ .debug_abbrev      0x155a        0x13f build/default/debug/_ext/1375476428/metadata.o
 
-.debug_line         0x0000       0x380b
+.debug_line         0x0000       0x387c
  *(.debug_line)
  .debug_line        0x0000        0x296 build/default/debug/_ext/60165520/plib_clk.o
  .debug_line        0x0296        0x291 build/default/debug/_ext/1865254177/plib_gpio.o
@@ -1041,9 +1041,9 @@ __FWPUCB
  .debug_line        0x27c6        0x165 build/default/debug/_ext/1360937237/main.o
  .debug_line        0x292b        0x129 build/default/debug/_ext/362756510/driver_can.o
  .debug_line        0x2a54        0xb3a build/default/debug/_ext/1375476428/boot.o
- .debug_line        0x358e        0x27d build/default/debug/_ext/1375476428/metadata.o
+ .debug_line        0x358e        0x2ee build/default/debug/_ext/1375476428/metadata.o
 
-.debug_frame        0x0000        0xaec
+.debug_frame        0x0000        0xaf4
  *(.debug_frame)
  .debug_frame       0x0000         0x24 build/default/debug/_ext/60165520/plib_clk.o
  .debug_frame       0x0024         0xa4 build/default/debug/_ext/1865254177/plib_gpio.o
@@ -1059,7 +1059,7 @@ __FWPUCB
  .debug_frame       0x0878         0x24 build/default/debug/_ext/1360937237/main.o
  .debug_frame       0x089c         0x3c build/default/debug/_ext/362756510/driver_can.o
  .debug_frame       0x08d8        0x190 build/default/debug/_ext/1375476428/boot.o
- .debug_frame       0x0a68         0x84 build/default/debug/_ext/1375476428/metadata.o
+ .debug_frame       0x0a68         0x8c build/default/debug/_ext/1375476428/metadata.o
 
 .debug_str          0x0000        0x3a9
  *(.debug_str)
@@ -1079,7 +1079,7 @@ __FWPUCB
  .debug_str         0x02c5         0xbf build/default/debug/_ext/1375476428/boot.o
  .debug_str         0x0384         0x25 build/default/debug/_ext/1375476428/metadata.o
 
-.debug_loc          0x0000       0x27da
+.debug_loc          0x0000       0x29f3
  *(.debug_loc)
  .debug_loc         0x0000         0x15 build/default/debug/_ext/60165520/plib_clk.o
  .debug_loc         0x0015        0x16b build/default/debug/_ext/1865254177/plib_gpio.o
@@ -1092,7 +1092,7 @@ __FWPUCB
  .debug_loc         0x152c        0x6ba build/default/debug/_ext/362756510/flash_eeprom.o
  .debug_loc         0x1be6         0xfc build/default/debug/_ext/362756510/driver_can.o
  .debug_loc         0x1ce2        0x960 build/default/debug/_ext/1375476428/boot.o
- .debug_loc         0x2642        0x198 build/default/debug/_ext/1375476428/metadata.o
+ .debug_loc         0x2642        0x3b1 build/default/debug/_ext/1375476428/metadata.o
 
 .debug_macinfo
  *(.debug_macinfo)
@@ -1100,7 +1100,7 @@ __FWPUCB
 .debug_pubnames
  *(.debug_pubnames)
 
-.debug_ranges       0x0000        0x550
+.debug_ranges       0x0000        0x570
  *(.debug_ranges)
  .debug_ranges      0x0000         0x10 build/default/debug/_ext/60165520/plib_clk.o
  .debug_ranges      0x0010         0x50 build/default/debug/_ext/1865254177/plib_gpio.o
@@ -1116,7 +1116,7 @@ __FWPUCB
  .debug_ranges      0x0418         0x10 build/default/debug/_ext/1360937237/main.o
  .debug_ranges      0x0428         0x18 build/default/debug/_ext/362756510/driver_can.o
  .debug_ranges      0x0440         0xb8 build/default/debug/_ext/1375476428/boot.o
- .debug_ranges      0x04f8         0x58 build/default/debug/_ext/1375476428/metadata.o
+ .debug_ranges      0x04f8         0x78 build/default/debug/_ext/1375476428/metadata.o
 
 .debug_aranges      0x0000        0x540
  *(.debug_aranges)
@@ -4560,468 +4560,468 @@ __ivt_0           0x800004        0x47c
                   0x8015d4        0x400 build/default/debug/_ext/362756510/driver_mcp2515.o
                   0x8015d4                  _MCP2515_Task
 
+.text.Metadata_Init
+                  0x8019d4        0x31c
+ .text.Metadata_Init
+                  0x8019d4        0x31c build/default/debug/_ext/1375476428/metadata.o
+                  0x8019d4                  _Metadata_Init
+
 .text.Boot_Jump_Handler
-                  0x8019d4        0x1e0
+                  0x801cf0        0x1e0
  .text.Boot_Jump_Handler
-                  0x8019d4        0x1e0 build/default/debug/_ext/1375476428/boot.o
-                  0x8019d4                  _Boot_Jump_Handler
+                  0x801cf0        0x1e0 build/default/debug/_ext/1375476428/boot.o
+                  0x801cf0                  _Boot_Jump_Handler
 
 .text.SPI1_WriteRead
-                  0x801bb4        0x1bc
+                  0x801ed0        0x1bc
  .text.SPI1_WriteRead
-                  0x801bb4        0x1bc build/default/debug/_ext/1868329136/plib_spi1_host.o
-                  0x801bb4                  _SPI1_WriteRead
-
-.text.Metadata_Init
-                  0x801d70        0x1ac
- .text.Metadata_Init
-                  0x801d70        0x1ac build/default/debug/_ext/1375476428/metadata.o
-                  0x801d70                  _Metadata_Init
+                  0x801ed0        0x1bc build/default/debug/_ext/1868329136/plib_spi1_host.o
+                  0x801ed0                  _SPI1_WriteRead
 
 .text.Flash_EEPROM_Write_Page
-                  0x801f1c        0x188
+                  0x80208c        0x188
  .text.Flash_EEPROM_Write_Page
-                  0x801f1c        0x188 build/default/debug/_ext/362756510/flash_eeprom.o
-                  0x801f1c                  _Flash_EEPROM_Write_Page
+                  0x80208c        0x188 build/default/debug/_ext/362756510/flash_eeprom.o
+                  0x80208c                  _Flash_EEPROM_Write_Page
 
 .text.Boot_App_Size_Handler
-                  0x8020a4        0x160
+                  0x802214        0x160
  .text.Boot_App_Size_Handler
-                  0x8020a4        0x160 build/default/debug/_ext/1375476428/boot.o
-                  0x8020a4                  _Boot_App_Size_Handler
+                  0x802214        0x160 build/default/debug/_ext/1375476428/boot.o
+                  0x802214                  _Boot_App_Size_Handler
 
 .text.MCP2515_FrameDequeue
-                  0x802204        0x154
+                  0x802374        0x154
  .text.MCP2515_FrameDequeue
-                  0x802204        0x154 build/default/debug/_ext/362756510/driver_mcp2515.o
+                  0x802374        0x154 build/default/debug/_ext/362756510/driver_mcp2515.o
 
 .text.CLOCK_Initialize
-                  0x802358        0x14c
+                  0x8024c8        0x14c
  .text.CLOCK_Initialize
-                  0x802358        0x14c build/default/debug/_ext/60165520/plib_clk.o
-                  0x802358                  _CLOCK_Initialize
+                  0x8024c8        0x14c build/default/debug/_ext/60165520/plib_clk.o
+                  0x8024c8                  _CLOCK_Initialize
 
 .text.Boot_App_Erase_Handler
-                  0x8024a4        0x14c
+                  0x802614        0x14c
  .text.Boot_App_Erase_Handler
-                  0x8024a4        0x14c build/default/debug/_ext/1375476428/boot.o
-                  0x8024a4                  _Boot_App_Erase_Handler
+                  0x802614        0x14c build/default/debug/_ext/1375476428/boot.o
+                  0x802614                  _Boot_App_Erase_Handler
 
 .text.SPI1RX_InterruptHandler
-                  0x8025f0        0x140
+                  0x802760        0x140
  .text.SPI1RX_InterruptHandler
-                  0x8025f0        0x140 build/default/debug/_ext/1868329136/plib_spi1_host.o
-                  0x8025f0                  _SPI1RX_InterruptHandler
+                  0x802760        0x140 build/default/debug/_ext/1868329136/plib_spi1_host.o
+                  0x802760                  _SPI1RX_InterruptHandler
 
 .text.Boot_APP_CRC_Handler
-                  0x802730        0x134
+                  0x8028a0        0x134
  .text.Boot_APP_CRC_Handler
-                  0x802730        0x134 build/default/debug/_ext/1375476428/boot.o
-                  0x802730                  _Boot_APP_CRC_Handler
+                  0x8028a0        0x134 build/default/debug/_ext/1375476428/boot.o
+                  0x8028a0                  _Boot_APP_CRC_Handler
 
 .text.MCP2515_FrameEnqueue
-                  0x802864        0x128
+                  0x8029d4        0x128
  .text.MCP2515_FrameEnqueue
-                  0x802864        0x128 build/default/debug/_ext/362756510/driver_mcp2515.o
+                  0x8029d4        0x128 build/default/debug/_ext/362756510/driver_mcp2515.o
 
 .text.App_Firmware_Write_Flash
-                  0x80298c        0x120
+                  0x802afc        0x120
  .text.App_Firmware_Write_Flash
-                  0x80298c        0x120 build/default/debug/_ext/1375476428/boot.o
-                  0x80298c                  _App_Firmware_Write_Flash
+                  0x802afc        0x120 build/default/debug/_ext/1375476428/boot.o
+                  0x802afc                  _App_Firmware_Write_Flash
 
 .text.Boot_App_Chunk_Handler
-                  0x802aac        0x110
+                  0x802c1c        0x110
  .text.Boot_App_Chunk_Handler
-                  0x802aac        0x110 build/default/debug/_ext/1375476428/boot.o
-                  0x802aac                  _Boot_App_Chunk_Handler
+                  0x802c1c        0x110 build/default/debug/_ext/1375476428/boot.o
+                  0x802c1c                  _Boot_App_Chunk_Handler
 
 .text.Boot_PIC_ID_Handler
-                  0x802bbc        0x108
+                  0x802d2c        0x108
  .text.Boot_PIC_ID_Handler
-                  0x802bbc        0x108 build/default/debug/_ext/1375476428/boot.o
-                  0x802bbc                  _Boot_PIC_ID_Handler
+                  0x802d2c        0x108 build/default/debug/_ext/1375476428/boot.o
+                  0x802d2c                  _Boot_PIC_ID_Handler
 
 .text.Boot_Metadata_Handler
-                  0x802cc4        0x108
+                  0x802e34        0x108
  .text.Boot_Metadata_Handler
-                  0x802cc4        0x108 build/default/debug/_ext/1375476428/boot.o
-                  0x802cc4                  _Boot_Metadata_Handler
+                  0x802e34        0x108 build/default/debug/_ext/1375476428/boot.o
+                  0x802e34                  _Boot_Metadata_Handler
 
 .text.MCP2515_Init
-                  0x802dcc         0xf4
+                  0x802f3c         0xf4
  .text.MCP2515_Init
-                  0x802dcc         0xf4 build/default/debug/_ext/362756510/driver_mcp2515.o
-                  0x802dcc                  _MCP2515_Init
+                  0x802f3c         0xf4 build/default/debug/_ext/362756510/driver_mcp2515.o
+                  0x802f3c                  _MCP2515_Init
 
 .text.Run_Boot_Handler
-                  0x802ec0         0xc8
+                  0x803030         0xc8
  .text.Run_Boot_Handler
-                  0x802ec0         0xc8 build/default/debug/_ext/1375476428/boot.o
-                  0x802ec0                  _Run_Boot_Handler
+                  0x803030         0xc8 build/default/debug/_ext/1375476428/boot.o
+                  0x803030                  _Run_Boot_Handler
 
 .text.Get_Software_ID
-                  0x802f88         0xc8
+                  0x8030f8         0xc8
  .text.Get_Software_ID
-                  0x802f88         0xc8 build/default/debug/_ext/1375476428/metadata.o
-                  0x802f88                  _Get_Software_ID
+                  0x8030f8         0xc8 build/default/debug/_ext/1375476428/metadata.o
+                  0x8030f8                  _Get_Software_ID
 
 .text.Boot_Status_Handler
-                  0x803050         0xa8
+                  0x8031c0         0xa8
  .text.Boot_Status_Handler
-                  0x803050         0xa8 build/default/debug/_ext/1375476428/boot.o
-                  0x803050                  _Boot_Status_Handler
+                  0x8031c0         0xa8 build/default/debug/_ext/1375476428/boot.o
+                  0x8031c0                  _Boot_Status_Handler
 
 .text.SPI_FIFO_Fill
-                  0x8030f8         0x90
+                  0x803268         0x90
  .text.SPI_FIFO_Fill
-                  0x8030f8         0x90 build/default/debug/_ext/1868329136/plib_spi1_host.o
+                  0x803268         0x90 build/default/debug/_ext/1868329136/plib_spi1_host.o
 
 .text.Get_Model_Number
-                  0x803188         0x8c
+                  0x8032f8         0x8c
  .text.Get_Model_Number
-                  0x803188         0x8c build/default/debug/_ext/1375476428/metadata.o
-                  0x803188                  _Get_Model_Number
+                  0x8032f8         0x8c build/default/debug/_ext/1375476428/metadata.o
+                  0x8032f8                  _Get_Model_Number
 
 .text.MCP2515_StartWriteTransaction
-                  0x803214         0x80
+                  0x803384         0x80
  .text.MCP2515_StartWriteTransaction
-                  0x803214         0x80 build/default/debug/_ext/362756510/driver_mcp2515.o
+                  0x803384         0x80 build/default/debug/_ext/362756510/driver_mcp2515.o
 
 .text.MCP2515_StartReadTransaction
-                  0x803294         0x7c
+                  0x803404         0x7c
  .text.MCP2515_StartReadTransaction
-                  0x803294         0x7c build/default/debug/_ext/362756510/driver_mcp2515.o
+                  0x803404         0x7c build/default/debug/_ext/362756510/driver_mcp2515.o
 
 .text.Page_Is_Valid
-                  0x803310         0x78
+                  0x803480         0x78
  .text.Page_Is_Valid
-                  0x803310         0x78 build/default/debug/_ext/362756510/flash_eeprom.o
+                  0x803480         0x78 build/default/debug/_ext/362756510/flash_eeprom.o
 
 .text.Flash_EEPROM_Read_Page
-                  0x803388         0x78
+                  0x8034f8         0x78
  .text.Flash_EEPROM_Read_Page
-                  0x803388         0x78 build/default/debug/_ext/362756510/flash_eeprom.o
-                  0x803388                  _Flash_EEPROM_Read_Page
+                  0x8034f8         0x78 build/default/debug/_ext/362756510/flash_eeprom.o
+                  0x8034f8                  _Flash_EEPROM_Read_Page
 
 .text.SPI1TX_InterruptHandler
-                  0x803400         0x70
+                  0x803570         0x70
  .text.SPI1TX_InterruptHandler
-                  0x803400         0x70 build/default/debug/_ext/1868329136/plib_spi1_host.o
-                  0x803400                  _SPI1TX_InterruptHandler
+                  0x803570         0x70 build/default/debug/_ext/1868329136/plib_spi1_host.o
+                  0x803570                  _SPI1TX_InterruptHandler
 
 .text.Calculate_CRC
-                  0x803470         0x70
+                  0x8035e0         0x70
  .text.Calculate_CRC
-                  0x803470         0x70 build/default/debug/_ext/362756510/flash_eeprom.o
+                  0x8035e0         0x70 build/default/debug/_ext/362756510/flash_eeprom.o
 
 .text.Boot_App_Jump
-                  0x8034e0         0x70
+                  0x803650         0x70
  .text.Boot_App_Jump
-                  0x8034e0         0x70 build/default/debug/_ext/1375476428/boot.o
-                  0x8034e0                  _Boot_App_Jump
+                  0x803650         0x70 build/default/debug/_ext/1375476428/boot.o
+                  0x803650                  _Boot_App_Jump
 
 .text.Get_Part_Number
-                  0x803550         0x68
+                  0x8036c0         0x68
  .text.Get_Part_Number
-                  0x803550         0x68 build/default/debug/_ext/1375476428/metadata.o
-                  0x803550                  _Get_Part_Number
+                  0x8036c0         0x68 build/default/debug/_ext/1375476428/metadata.o
+                  0x8036c0                  _Get_Part_Number
 
 .text.SPI1E_InterruptHandler
-                  0x8035b8         0x64
+                  0x803728         0x64
  .text.SPI1E_InterruptHandler
-                  0x8035b8         0x64 build/default/debug/_ext/1868329136/plib_spi1_host.o
-                  0x8035b8                  _SPI1E_InterruptHandler
+                  0x803728         0x64 build/default/debug/_ext/1868329136/plib_spi1_host.o
+                  0x803728                  _SPI1E_InterruptHandler
 
 .text.GPIO_Initialize
-                  0x80361c         0x60
+                  0x80378c         0x60
  .text.GPIO_Initialize
-                  0x80361c         0x60 build/default/debug/_ext/1865254177/plib_gpio.o
-                  0x80361c                  _GPIO_Initialize
+                  0x80378c         0x60 build/default/debug/_ext/1865254177/plib_gpio.o
+                  0x80378c                  _GPIO_Initialize
 
 .text.Flash_EEPROM_Init
-                  0x80367c         0x5c
+                  0x8037ec         0x5c
  .text.Flash_EEPROM_Init
-                  0x80367c         0x5c build/default/debug/_ext/362756510/flash_eeprom.o
-                  0x80367c                  _Flash_EEPROM_Init
+                  0x8037ec         0x5c build/default/debug/_ext/362756510/flash_eeprom.o
+                  0x8037ec                  _Flash_EEPROM_Init
 
 .text.Get_PIC_ID
-                  0x8036d8         0x5c
+                  0x803848         0x5c
  .text.Get_PIC_ID
-                  0x8036d8         0x5c build/default/debug/_ext/1375476428/metadata.o
-                  0x8036d8                  _Get_PIC_ID
+                  0x803848         0x5c build/default/debug/_ext/1375476428/metadata.o
+                  0x803848                  _Get_PIC_ID
 
 .text.Get_Firmware_ID
-                  0x803734         0x5c
+                  0x8038a4         0x5c
  .text.Get_Firmware_ID
-                  0x803734         0x5c build/default/debug/_ext/1375476428/metadata.o
-                  0x803734                  _Get_Firmware_ID
+                  0x8038a4         0x5c build/default/debug/_ext/1375476428/metadata.o
+                  0x8038a4                  _Get_Firmware_ID
 
 .text.CANbus_read
-                  0x803790         0x50
+                  0x803900         0x50
  .text.CANbus_read
-                  0x803790         0x50 build/default/debug/_ext/362756510/driver_can.o
-                  0x803790                  _CANbus_read
+                  0x803900         0x50 build/default/debug/_ext/362756510/driver_can.o
+                  0x803900                  _CANbus_read
 
 .text.Boot_Stay_In_Boot_Handler
-                  0x8037e0         0x50
+                  0x803950         0x50
  .text.Boot_Stay_In_Boot_Handler
-                  0x8037e0         0x50 build/default/debug/_ext/1375476428/boot.o
-                  0x8037e0                  _Boot_Stay_In_Boot_Handler
+                  0x803950         0x50 build/default/debug/_ext/1375476428/boot.o
+                  0x803950                  _Boot_Stay_In_Boot_Handler
 
 .text.NVM_QuadWordWrite
-                  0x803830         0x4c
+                  0x8039a0         0x4c
  .text.NVM_QuadWordWrite
-                  0x803830         0x4c build/default/debug/_ext/60176403/plib_nvm.o
-                  0x803830                  _NVM_QuadWordWrite
+                  0x8039a0         0x4c build/default/debug/_ext/60176403/plib_nvm.o
+                  0x8039a0                  _NVM_QuadWordWrite
 
 .text.SPI1_Initialize
-                  0x80387c         0x4c
+                  0x8039ec         0x4c
  .text.SPI1_Initialize
-                  0x80387c         0x4c build/default/debug/_ext/1868329136/plib_spi1_host.o
-                  0x80387c                  _SPI1_Initialize
+                  0x8039ec         0x4c build/default/debug/_ext/1868329136/plib_spi1_host.o
+                  0x8039ec                  _SPI1_Initialize
 
 .text.Boot_APP_CRC32_Software
-                  0x8038c8         0x4c
+                  0x803a38         0x4c
  .text.Boot_APP_CRC32_Software
-                  0x8038c8         0x4c build/default/debug/_ext/1375476428/boot.o
-                  0x8038c8                  _Boot_APP_CRC32_Software
+                  0x803a38         0x4c build/default/debug/_ext/1375476428/boot.o
+                  0x803a38                  _Boot_APP_CRC32_Software
 
 .text.MCP2515_ReadRegister
-                  0x803914         0x48
+                  0x803a84         0x48
  .text.MCP2515_ReadRegister
-                  0x803914         0x48 build/default/debug/_ext/362756510/driver_mcp2515.o
+                  0x803a84         0x48 build/default/debug/_ext/362756510/driver_mcp2515.o
 
 .text.Write_Quad_Word
-                  0x80395c         0x48
+                  0x803acc         0x48
  .text.Write_Quad_Word
-                  0x80395c         0x48 build/default/debug/_ext/362756510/flash_eeprom.o
+                  0x803acc         0x48 build/default/debug/_ext/362756510/flash_eeprom.o
 
 .text.Boot_App_Chunk_Ack
-                  0x8039a4         0x48
+                  0x803b14         0x48
  .text.Boot_App_Chunk_Ack
-                  0x8039a4         0x48 build/default/debug/_ext/1375476428/boot.o
-                  0x8039a4                  _Boot_App_Chunk_Ack
+                  0x803b14         0x48 build/default/debug/_ext/1375476428/boot.o
+                  0x803b14                  _Boot_App_Chunk_Ack
 
 .text.INTC_Initialize
-                  0x8039ec         0x44
+                  0x803b5c         0x44
  .text.INTC_Initialize
-                  0x8039ec         0x44 build/default/debug/_ext/1865312166/plib_intc.o
-                  0x8039ec                  _INTC_Initialize
+                  0x803b5c         0x44 build/default/debug/_ext/1865312166/plib_intc.o
+                  0x803b5c                  _INTC_Initialize
 
 .text.Build_Metadata
-                  0x803a30         0x44
+                  0x803ba0         0x44
  .text.Build_Metadata
-                  0x803a30         0x44 build/default/debug/_ext/1375476428/metadata.o
-                  0x803a30                  _Build_Metadata
+                  0x803ba0         0x44 build/default/debug/_ext/1375476428/metadata.o
+                  0x803ba0                  _Build_Metadata
 
 .text.MCP2515_BitModify
-                  0x803a74         0x3c
+                  0x803be4         0x3c
  .text.MCP2515_BitModify
-                  0x803a74         0x3c build/default/debug/_ext/362756510/driver_mcp2515.o
+                  0x803be4         0x3c build/default/debug/_ext/362756510/driver_mcp2515.o
 
 .text.Find_Latest_Page
-                  0x803ab0         0x3c
+                  0x803c20         0x3c
  .text.Find_Latest_Page
-                  0x803ab0         0x3c build/default/debug/_ext/362756510/flash_eeprom.o
+                  0x803c20         0x3c build/default/debug/_ext/362756510/flash_eeprom.o
 
 .text.STATE_ENGINE_Tasks
-                  0x803aec         0x3c
+                  0x803c5c         0x3c
  .text.STATE_ENGINE_Tasks
-                  0x803aec         0x3c build/default/debug/_ext/1200941409/state_engine.o
-                  0x803aec                  _STATE_ENGINE_Tasks
+                  0x803c5c         0x3c build/default/debug/_ext/1200941409/state_engine.o
+                  0x803c5c                  _STATE_ENGINE_Tasks
 
 .text.MCP2515_Reset
-                  0x803b28         0x38
+                  0x803c98         0x38
  .text.MCP2515_Reset
-                  0x803b28         0x38 build/default/debug/_ext/362756510/driver_mcp2515.o
+                  0x803c98         0x38 build/default/debug/_ext/362756510/driver_mcp2515.o
 
 .text.MCP2515_WriteRegister
-                  0x803b60         0x38
+                  0x803cd0         0x38
  .text.MCP2515_WriteRegister
-                  0x803b60         0x38 build/default/debug/_ext/362756510/driver_mcp2515.o
+                  0x803cd0         0x38 build/default/debug/_ext/362756510/driver_mcp2515.o
 
 .text.NVM_RowWrite
-                  0x803b98         0x30
+                  0x803d08         0x30
  .text.NVM_RowWrite
-                  0x803b98         0x30 build/default/debug/_ext/60176403/plib_nvm.o
-                  0x803b98                  _NVM_RowWrite
+                  0x803d08         0x30 build/default/debug/_ext/60176403/plib_nvm.o
+                  0x803d08                  _NVM_RowWrite
 
 .text.MCP2515_Delay
-                  0x803bc8         0x30
+                  0x803d38         0x30
  .text.MCP2515_Delay
-                  0x803bc8         0x30 build/default/debug/_ext/362756510/driver_mcp2515.o
+                  0x803d38         0x30 build/default/debug/_ext/362756510/driver_mcp2515.o
 
 .text.Boot_Is_App_Present
-                  0x803bf8         0x2c
+                  0x803d68         0x2c
  .text.Boot_Is_App_Present
-                  0x803bf8         0x2c build/default/debug/_ext/1375476428/boot.o
-                  0x803bf8                  _Boot_Is_App_Present
+                  0x803d68         0x2c build/default/debug/_ext/1375476428/boot.o
+                  0x803d68                  _Boot_Is_App_Present
 
 .text.SPI1_IsBusy
-                  0x803c24         0x28
+                  0x803d94         0x28
  .text.SPI1_IsBusy
-                  0x803c24         0x28 build/default/debug/_ext/1868329136/plib_spi1_host.o
-                  0x803c24                  _SPI1_IsBusy
+                  0x803d94         0x28 build/default/debug/_ext/1868329136/plib_spi1_host.o
+                  0x803d94                  _SPI1_IsBusy
 
 .text.MCP2515_AsyncBitModify
-                  0x803c4c         0x28
+                  0x803dbc         0x28
  .text.MCP2515_AsyncBitModify
-                  0x803c4c         0x28 build/default/debug/_ext/362756510/driver_mcp2515.o
+                  0x803dbc         0x28 build/default/debug/_ext/362756510/driver_mcp2515.o
 
 .text.MCP2515_DelayMs
-                  0x803c74         0x24
+                  0x803de4         0x24
  .text.MCP2515_DelayMs
-                  0x803c74         0x24 build/default/debug/_ext/362756510/driver_mcp2515.o
+                  0x803de4         0x24 build/default/debug/_ext/362756510/driver_mcp2515.o
 
 .text.MCP2515_AsyncRegisterCallback
-                  0x803c98         0x24
+                  0x803e08         0x24
  .text.MCP2515_AsyncRegisterCallback
-                  0x803c98         0x24 build/default/debug/_ext/362756510/driver_mcp2515.o
+                  0x803e08         0x24 build/default/debug/_ext/362756510/driver_mcp2515.o
 
 .text.MCP2515_AsyncReadRegister
-                  0x803cbc         0x24
+                  0x803e2c         0x24
  .text.MCP2515_AsyncReadRegister
-                  0x803cbc         0x24 build/default/debug/_ext/362756510/driver_mcp2515.o
+                  0x803e2c         0x24 build/default/debug/_ext/362756510/driver_mcp2515.o
 
 .text.MCP2515_SendMessage
-                  0x803ce0         0x24
+                  0x803e50         0x24
  .text.MCP2515_SendMessage
-                  0x803ce0         0x24 build/default/debug/_ext/362756510/driver_mcp2515.o
-                  0x803ce0                  _MCP2515_SendMessage
+                  0x803e50         0x24 build/default/debug/_ext/362756510/driver_mcp2515.o
+                  0x803e50                  _MCP2515_SendMessage
 
 .text.Flash_Wait_Complete
-                  0x803d04         0x24
+                  0x803e74         0x24
  .text.Flash_Wait_Complete
-                  0x803d04         0x24 build/default/debug/_ext/362756510/flash_eeprom.o
+                  0x803e74         0x24 build/default/debug/_ext/362756510/flash_eeprom.o
 
 .text.CANbus_write
-                  0x803d28         0x24
+                  0x803e98         0x24
  .text.CANbus_write
-                  0x803d28         0x24 build/default/debug/_ext/362756510/driver_can.o
-                  0x803d28                  _CANbus_write
+                  0x803e98         0x24 build/default/debug/_ext/362756510/driver_can.o
+                  0x803e98                  _CANbus_write
 
 .text.SYS_Initialize
-                  0x803d4c         0x20
+                  0x803ebc         0x20
  .text.SYS_Initialize
-                  0x803d4c         0x20 build/default/debug/_ext/1171490990/initialization.o
-                  0x803d4c                  _SYS_Initialize
+                  0x803ebc         0x20 build/default/debug/_ext/1171490990/initialization.o
+                  0x803ebc                  _SYS_Initialize
 
 .text.MCP2515_AsyncResetState
-                  0x803d6c         0x20
+                  0x803edc         0x20
  .text.MCP2515_AsyncResetState
-                  0x803d6c         0x20 build/default/debug/_ext/362756510/driver_mcp2515.o
+                  0x803edc         0x20 build/default/debug/_ext/362756510/driver_mcp2515.o
 
 .text.NVM_InterruptHandler
-                  0x803d8c         0x1c
+                  0x803efc         0x1c
  .text.NVM_InterruptHandler
-                  0x803d8c         0x1c build/default/debug/_ext/60176403/plib_nvm.o
-                  0x803d8c                  _NVM_InterruptHandler
+                  0x803efc         0x1c build/default/debug/_ext/60176403/plib_nvm.o
+                  0x803efc                  _NVM_InterruptHandler
 
 .text.MCP2515_AsyncRtsTx0
-                  0x803da8         0x1c
+                  0x803f18         0x1c
  .text.MCP2515_AsyncRtsTx0
-                  0x803da8         0x1c build/default/debug/_ext/362756510/driver_mcp2515.o
+                  0x803f18         0x1c build/default/debug/_ext/362756510/driver_mcp2515.o
 
 .text.MCP2515_ReceiveMessage
-                  0x803dc4         0x1c
+                  0x803f34         0x1c
  .text.MCP2515_ReceiveMessage
-                  0x803dc4         0x1c build/default/debug/_ext/362756510/driver_mcp2515.o
-                  0x803dc4                  _MCP2515_ReceiveMessage
+                  0x803f34         0x1c build/default/debug/_ext/362756510/driver_mcp2515.o
+                  0x803f34                  _MCP2515_ReceiveMessage
 
 .text.NVM_PageErase
-                  0x803de0         0x18
+                  0x803f50         0x18
  .text.NVM_PageErase
-                  0x803de0         0x18 build/default/debug/_ext/60176403/plib_nvm.o
-                  0x803de0                  _NVM_PageErase
+                  0x803f50         0x18 build/default/debug/_ext/60176403/plib_nvm.o
+                  0x803f50                  _NVM_PageErase
 
 .text.MCP2515_FifoWriteByte
-                  0x803df8         0x18
+                  0x803f68         0x18
  .text.MCP2515_FifoWriteByte
-                  0x803df8         0x18 build/default/debug/_ext/362756510/driver_mcp2515.o
+                  0x803f68         0x18 build/default/debug/_ext/362756510/driver_mcp2515.o
 
 .text.MCP2515_FifoReadByte
-                  0x803e10         0x18
+                  0x803f80         0x18
  .text.MCP2515_FifoReadByte
-                  0x803e10         0x18 build/default/debug/_ext/362756510/driver_mcp2515.o
+                  0x803f80         0x18 build/default/debug/_ext/362756510/driver_mcp2515.o
 
 .text.Next_Chunk_Index
-                  0x803e28         0x18
+                  0x803f98         0x18
  .text.Next_Chunk_Index
-                  0x803e28         0x18 build/default/debug/_ext/1375476428/boot.o
-                  0x803e28                  _Next_Chunk_Index
+                  0x803f98         0x18 build/default/debug/_ext/1375476428/boot.o
+                  0x803f98                  _Next_Chunk_Index
 
 .text.NVM_StartOperationAtAddress
-                  0x803e40         0x14
+                  0x803fb0         0x14
  .text.NVM_StartOperationAtAddress
-                  0x803e40         0x14 build/default/debug/_ext/60176403/plib_nvm.o
+                  0x803fb0         0x14 build/default/debug/_ext/60176403/plib_nvm.o
 
-.text.NVM_Read    0x803e54         0x14
+.text.NVM_Read    0x803fc4         0x14
  .text.NVM_Read
-                  0x803e54         0x14 build/default/debug/_ext/60176403/plib_nvm.o
-                  0x803e54                  _NVM_Read
+                  0x803fc4         0x14 build/default/debug/_ext/60176403/plib_nvm.o
+                  0x803fc4                  _NVM_Read
 
 .text.MCP2515_SPI_Callback
-                  0x803e68         0x14
+                  0x803fd8         0x14
  .text.MCP2515_SPI_Callback
-                  0x803e68         0x14 build/default/debug/_ext/362756510/driver_mcp2515.o
+                  0x803fd8         0x14 build/default/debug/_ext/362756510/driver_mcp2515.o
 
-.text.main        0x803e7c         0x14
- .text.main       0x803e7c         0x14 build/default/debug/_ext/1360937237/main.o
-                  0x803e7c                  _main
+.text.main        0x803fec         0x14
+ .text.main       0x803fec         0x14 build/default/debug/_ext/1360937237/main.o
+                  0x803fec                  _main
 
 .text.NVM_Initialize
-                  0x803e90         0x10
+                  0x804000         0x10
  .text.NVM_Initialize
-                  0x803e90         0x10 build/default/debug/_ext/60176403/plib_nvm.o
-                  0x803e90                  _NVM_Initialize
+                  0x804000         0x10 build/default/debug/_ext/60176403/plib_nvm.o
+                  0x804000                  _NVM_Initialize
 
 .text.NVM_ErrorGet
-                  0x803ea0         0x10
+                  0x804010         0x10
  .text.NVM_ErrorGet
-                  0x803ea0         0x10 build/default/debug/_ext/60176403/plib_nvm.o
-                  0x803ea0                  _NVM_ErrorGet
+                  0x804010         0x10 build/default/debug/_ext/60176403/plib_nvm.o
+                  0x804010                  _NVM_ErrorGet
 
 .text.NVM_IsBusy
-                  0x803eb0         0x10
+                  0x804020         0x10
  .text.NVM_IsBusy
-                  0x803eb0         0x10 build/default/debug/_ext/60176403/plib_nvm.o
-                  0x803eb0                  _NVM_IsBusy
+                  0x804020         0x10 build/default/debug/_ext/60176403/plib_nvm.o
+                  0x804020                  _NVM_IsBusy
 
 .text.SPI1_CallbackRegister
-                  0x803ec0         0x10
+                  0x804030         0x10
  .text.SPI1_CallbackRegister
-                  0x803ec0         0x10 build/default/debug/_ext/1868329136/plib_spi1_host.o
-                  0x803ec0                  _SPI1_CallbackRegister
+                  0x804030         0x10 build/default/debug/_ext/1868329136/plib_spi1_host.o
+                  0x804030                  _SPI1_CallbackRegister
 
-C:\Users\HP\AppData\Local\Temp\ccnnSvcC.s.scn1
-                  0x803ed0         0x10
- C:\Users\HP\AppData\Local\Temp\ccnnSvcC.s.scn1
-                  0x803ed0         0x10 build/default/debug/_ext/362756510/flash_eeprom.o
+C:\Users\HP\AppData\Local\Temp\ccov1Dj8.s.scn1
+                  0x804040         0x10
+ C:\Users\HP\AppData\Local\Temp\ccov1Dj8.s.scn1
+                  0x804040         0x10 build/default/debug/_ext/362756510/flash_eeprom.o
 
 .text.SPI1_Write
-                  0x803ee0          0xc
+                  0x804050          0xc
  .text.SPI1_Write
-                  0x803ee0          0xc build/default/debug/_ext/1868329136/plib_spi1_host.o
-                  0x803ee0                  _SPI1_Write
+                  0x804050          0xc build/default/debug/_ext/1868329136/plib_spi1_host.o
+                  0x804050                  _SPI1_Write
 
 .text.TRAPS_halt_on_error
-                  0x803eec          0xc
+                  0x80405c          0xc
  .text.TRAPS_halt_on_error
-                  0x803eec          0xc build/default/debug/_ext/1171490990/traps.o
-                  0x803eec                  _TRAPS_halt_on_error
+                  0x80405c          0xc build/default/debug/_ext/1171490990/traps.o
+                  0x80405c                  _TRAPS_halt_on_error
 
 .text.Erase_Page
-                  0x803ef8          0xc
+                  0x804068          0xc
  .text.Erase_Page
-                  0x803ef8          0xc build/default/debug/_ext/362756510/flash_eeprom.o
+                  0x804068          0xc build/default/debug/_ext/362756510/flash_eeprom.o
 
 .text.MCP2515_Select
-                  0x803f04          0x8
+                  0x804074          0x8
  .text.MCP2515_Select
-                  0x803f04          0x8 build/default/debug/_ext/362756510/driver_mcp2515.o
+                  0x804074          0x8 build/default/debug/_ext/362756510/driver_mcp2515.o
 
 .text.MCP2515_Deselect
-                  0x803f0c          0x8
+                  0x80407c          0x8
  .text.MCP2515_Deselect
-                  0x803f0c          0x8 build/default/debug/_ext/362756510/driver_mcp2515.o
+                  0x80407c          0x8 build/default/debug/_ext/362756510/driver_mcp2515.o

@@ -84,11 +84,8 @@ extern "C" {
 
 
 //--------------------------------------------------
-// METADATA FIELD OFFSET
-//--------------------------------------------------
-#define MCU_ID_OFFSET                   0U
-#define FIRMWARE_ID_OFFSET              (MCU_ID_LENGTH)
-
+// FIRMWARE ID FIELD OFFSET
+//--------------------------------------------------   
 #define APP_SIZE_OFFSET                 (FIRMWARE_ID_OFFSET + \
                                          PART_NUMBER_LENGTH + \
                                          MODEL_NUMBER_LENGTH + \
@@ -97,6 +94,13 @@ extern "C" {
                                          APP_VERSION_R)
 
 #define BOOT_VERSION_OFFSET             (APP_SIZE_OFFSET + APP_SIZE)
+
+    
+//--------------------------------------------------
+// METADATA FIELD OFFSET
+//--------------------------------------------------
+#define MCU_ID_OFFSET                   0U
+#define FIRMWARE_ID_OFFSET              (MCU_ID_LENGTH)
     
     
 //--------------------------------------------------
