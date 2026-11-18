@@ -1,11 +1,6 @@
 #ifndef _METADATA_H    
 #define _METADATA_H 
 
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "definitions.h"
     
 //--------------------------------------------------
@@ -148,9 +143,5 @@ void Get_Firmware_ID(void);
 void Build_Metadata(void);
 void Metadata_Init(void);
 
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* _METADATA_H */

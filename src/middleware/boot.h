@@ -1,11 +1,7 @@
-#ifndef _BOOT_HANDLER_H 
-#define _BOOT_HANDLER_H
+#ifndef _BOOT_H 
+#define _BOOT_H
 
-#include "definitions.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif    
+#include "definitions.h"  
     
 ///* =====================================================
 // * FLASH MEMORY MAP       // 64KB
@@ -102,6 +98,7 @@ extern "C" {
 /* =====================================================
  * API
  * ===================================================== */
+void Boot_Init(void);
 void Boot_PIC_ID_Handler(void);
 void Boot_Metadata_Handler(void);
 void Boot_Status_Handler(void);
@@ -120,9 +117,5 @@ void Boot_Stay_In_Boot_Handler(void);
 bool Boot_Stay_In_Boot_Requested(void);
 void Run_Boot_Handler(uint32_t id, uint8_t *rxBuffer);
 
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

@@ -20,6 +20,7 @@ void STATE_ENGINE_Tasks(void) {
             MCP2515_Init();
             Flash_EEPROM_Init();
             Metadata_Init();
+            Boot_Init();
             currentState = STATE_RUN;
             break;
         }
