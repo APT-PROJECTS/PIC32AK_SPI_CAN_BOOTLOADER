@@ -182,8 +182,6 @@ void Metadata_Init(void) {
     bool allFF;
     bool allStars = true;
     size_t i;
-    uint16_t firmwareOffset;
-    char storedFirmwareId[FIRMWARE_ID_LENGTH];
 
     /* Step 1: Read PIC ID. */
     Get_PIC_ID();
@@ -194,9 +192,6 @@ void Metadata_Init(void) {
             METADATA_LENGTH);
 
     metadata[METADATA_LENGTH] = '\0';
-    __builtin_memcpy(storedFirmwareId,
-            &metadata[FIRMWARE_ID_OFFSET],
-            FIRMWARE_ID_LENGTH);
 
     /* Step 3: Validate stored MCU ID: all 0x00, 0xFF, or '*' is invalid. */
     allZero = true;
@@ -239,7 +234,7 @@ void Metadata_Init(void) {
     allFF = true;
 
     for (i = 0U; i < FIRMWARE_ID_LENGTH; i++) {
-        uint8_t value = (uint8_t) storedFirmwareId[i];
+        uint8_t value = (uint8_t) metadata[FIRMWARE_ID_OFFSET + i];
 
         if (value != 0x00U) {
             allZero = false;
@@ -263,65 +258,34 @@ void Metadata_Init(void) {
         metadataChanged = true;
     } else {
         /* Restore stored fields. Do not restore bootloader version fields. */
-        firmwareOffset = 0U;
 
-        __builtin_memcpy(brandName, &storedFirmwareId[firmwareOffset], BRAND_NAME);
-        firmwareOffset += BRAND_NAME;
+        __builtin_memcpy(brandName, &metadata[BRAND_NAME_OFFSET], BRAND_NAME);
+        __builtin_memcpy(phases, &metadata[PHASES_OFFSET], PHASES);
+        __builtin_memcpy(switchesInParallel,
+                &metadata[SWITCHES_IN_PARALLEL_OFFSET], SWITCHES_IN_PARALLEL);
+        __builtin_memcpy(switchType, &metadata[SWITCH_TYPE_OFFSET], SWITCH_TYPE);
+        __builtin_memcpy(pcbType, &metadata[PCB_TYPE_OFFSET], PCB_TYPE);
 
-        __builtin_memcpy(phases, &storedFirmwareId[firmwareOffset], PHASES);
-        firmwareOffset += PHASES;
+        __builtin_memcpy(sensor, &metadata[SENSOR_OFFSET], SENSOR);
+        __builtin_memcpy(ntcResistor, &metadata[NTC_RESISTOR_OFFSET], NTC_RESISTOR);
+        __builtin_memcpy(ntcVolt, &metadata[NTC_VOLT_OFFSET], NTC_VOLT);
+        __builtin_memcpy(ntcValueB, &metadata[NTC_VALUE_B_OFFSET], NTC_VALUE_B);
+        __builtin_memcpy(connector, &metadata[CONNECTOR_OFFSET], CONNECTOR);
+        __builtin_memcpy(coms, &metadata[COMS_OFFSET], COMS);
 
-        __builtin_memcpy(switchesInParallel, &storedFirmwareId[firmwareOffset],
-                SWITCHES_IN_PARALLEL);
-        firmwareOffset += SWITCHES_IN_PARALLEL;
-
-        __builtin_memcpy(switchType, &storedFirmwareId[firmwareOffset], SWITCH_TYPE);
-        firmwareOffset += SWITCH_TYPE;
-
-        __builtin_memcpy(pcbType, &storedFirmwareId[firmwareOffset], PCB_TYPE);
-        firmwareOffset += PCB_TYPE;
-
-        __builtin_memcpy(sensor, &storedFirmwareId[firmwareOffset], SENSOR);
-        firmwareOffset += SENSOR;
-
-        __builtin_memcpy(ntcResistor, &storedFirmwareId[firmwareOffset], NTC_RESISTOR);
-        firmwareOffset += NTC_RESISTOR;
-
-        __builtin_memcpy(ntcVolt, &storedFirmwareId[firmwareOffset], NTC_VOLT);
-        firmwareOffset += NTC_VOLT;
-
-        __builtin_memcpy(ntcValueB, &storedFirmwareId[firmwareOffset], NTC_VALUE_B);
-        firmwareOffset += NTC_VALUE_B;
-
-        __builtin_memcpy(connector, &storedFirmwareId[firmwareOffset], CONNECTOR);
-        firmwareOffset += CONNECTOR;
-
-        __builtin_memcpy(coms, &storedFirmwareId[firmwareOffset], COMS);
-        firmwareOffset += COMS;
-
-        __builtin_memcpy(oemId, &storedFirmwareId[firmwareOffset], OEM_ID);
-        firmwareOffset += OEM_ID;
-
-        __builtin_memcpy(projectId, &storedFirmwareId[firmwareOffset], PROJECT_ID);
-        firmwareOffset += PROJECT_ID;
-
-        __builtin_memcpy(appVersionL, &storedFirmwareId[firmwareOffset], APP_VERSION_L);
-        firmwareOffset += APP_VERSION_L;
-
-        __builtin_memcpy(appVersionM, &storedFirmwareId[firmwareOffset], APP_VERSION_M);
-        firmwareOffset += APP_VERSION_M;
-
-        __builtin_memcpy(appVersionR, &storedFirmwareId[firmwareOffset], APP_VERSION_R);
-        firmwareOffset += APP_VERSION_R;
-
-        __builtin_memcpy(appSize, &storedFirmwareId[firmwareOffset], APP_SIZE);
-        firmwareOffset += APP_SIZE;
+        __builtin_memcpy(oemId, &metadata[OEM_ID_OFFSET], OEM_ID);
+        __builtin_memcpy(projectId, &metadata[PROJECT_ID_OFFSET], PROJECT_ID);
+        __builtin_memcpy(appVersionL, &metadata[APP_VERSION_L_OFFSET],
+                APP_VERSION_L);
+        __builtin_memcpy(appVersionM, &metadata[APP_VERSION_M_OFFSET],
+                APP_VERSION_M);
+        __builtin_memcpy(appVersionR, &metadata[APP_VERSION_R_OFFSET],
+                APP_VERSION_R);
+        __builtin_memcpy(appSize, &metadata[APP_SIZE_OFFSET], APP_SIZE);
         appSize[APP_SIZE] = '\0';
 
         /* Keep bootVersionL, bootVersionM, and bootVersionR from bootloader. */
-        firmwareOffset += BOOT_VERSION_L + BOOT_VERSION_M + BOOT_VERSION_R;
-
-        __builtin_memcpy(stayInBootFlag, &storedFirmwareId[firmwareOffset],
+        __builtin_memcpy(stayInBootFlag, &metadata[STAY_IN_BOOT_FLAG_OFFSET],
                 STAY_IN_BOOT_FLAG);
         stayInBootFlag[STAY_IN_BOOT_FLAG] = '\0';
 
@@ -330,7 +294,7 @@ void Metadata_Init(void) {
         Get_Software_ID();
         Get_Firmware_ID();
 
-        if (__builtin_memcmp(firmwareId, storedFirmwareId,
+        if (__builtin_memcmp(firmwareId, &metadata[FIRMWARE_ID_OFFSET],
                 FIRMWARE_ID_LENGTH) != 0) {
             Build_Metadata();
             metadataChanged = true;

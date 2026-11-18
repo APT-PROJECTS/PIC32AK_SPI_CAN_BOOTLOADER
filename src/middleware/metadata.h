@@ -84,23 +84,38 @@ extern "C" {
 
 
 //--------------------------------------------------
-// FIRMWARE ID FIELD OFFSET
-//--------------------------------------------------   
-#define APP_SIZE_OFFSET                 (FIRMWARE_ID_OFFSET + \
-                                         PART_NUMBER_LENGTH + \
-                                         MODEL_NUMBER_LENGTH + \
-                                         OEM_ID + PROJECT_ID + \
-                                         APP_VERSION_L + APP_VERSION_M + \
-                                         APP_VERSION_R)
-
-#define BOOT_VERSION_OFFSET             (APP_SIZE_OFFSET + APP_SIZE)
-
-    
-//--------------------------------------------------
 // METADATA FIELD OFFSET
 //--------------------------------------------------
 #define MCU_ID_OFFSET                   0U
 #define FIRMWARE_ID_OFFSET              (MCU_ID_LENGTH)
+
+//--------------------------------------------------
+// FIRMWARE ID FIELD OFFSET
+//--------------------------------------------------
+#define BRAND_NAME_OFFSET               (FIRMWARE_ID_OFFSET)
+#define PHASES_OFFSET                   (BRAND_NAME_OFFSET + BRAND_NAME)
+#define SWITCHES_IN_PARALLEL_OFFSET     (PHASES_OFFSET + PHASES)
+#define SWITCH_TYPE_OFFSET              (SWITCHES_IN_PARALLEL_OFFSET + \
+                                         SWITCHES_IN_PARALLEL)
+#define PCB_TYPE_OFFSET                 (SWITCH_TYPE_OFFSET + SWITCH_TYPE)
+
+#define SENSOR_OFFSET                   (PCB_TYPE_OFFSET + PCB_TYPE)
+#define NTC_RESISTOR_OFFSET             (SENSOR_OFFSET + SENSOR)
+#define NTC_VOLT_OFFSET                 (NTC_RESISTOR_OFFSET + NTC_RESISTOR)
+#define NTC_VALUE_B_OFFSET              (NTC_VOLT_OFFSET + NTC_VOLT)
+#define CONNECTOR_OFFSET                (NTC_VALUE_B_OFFSET + NTC_VALUE_B)
+#define COMS_OFFSET                     (CONNECTOR_OFFSET + CONNECTOR)
+
+#define OEM_ID_OFFSET                   (COMS_OFFSET + COMS)
+#define PROJECT_ID_OFFSET               (OEM_ID_OFFSET + OEM_ID)
+#define APP_VERSION_L_OFFSET            (PROJECT_ID_OFFSET + PROJECT_ID)
+#define APP_VERSION_M_OFFSET            (APP_VERSION_L_OFFSET + APP_VERSION_L)
+#define APP_VERSION_R_OFFSET            (APP_VERSION_M_OFFSET + APP_VERSION_M)
+#define APP_SIZE_OFFSET                 (APP_VERSION_R_OFFSET + APP_VERSION_R)
+#define BOOT_VERSION_L_OFFSET           (APP_SIZE_OFFSET + APP_SIZE)
+#define BOOT_VERSION_M_OFFSET           (BOOT_VERSION_L_OFFSET + BOOT_VERSION_L)
+#define BOOT_VERSION_R_OFFSET           (BOOT_VERSION_M_OFFSET + BOOT_VERSION_M)
+#define STAY_IN_BOOT_FLAG_OFFSET        (BOOT_VERSION_R_OFFSET + BOOT_VERSION_R)
     
     
 //--------------------------------------------------
