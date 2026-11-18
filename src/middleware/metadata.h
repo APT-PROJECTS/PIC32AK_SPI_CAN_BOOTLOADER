@@ -31,16 +31,16 @@
                                         SWITCHES_IN_PARALLEL + \
                                         SWITCH_TYPE + PCB_TYPE)
 
+#define CONNECTOR                       2U
+#define COMS                            2U
 #define SENSOR                          1U
 #define NTC_RESISTOR                    3U
 #define NTC_VOLT                        1U
 #define NTC_VALUE_B                     2U
-#define CONNECTOR                       2U
-#define COMS                            2U
 
-#define MODEL_NUMBER_LENGTH             (SENSOR + NTC_RESISTOR + \
-                                        NTC_VOLT + NTC_VALUE_B + \
-                                        CONNECTOR + COMS)
+#define MODEL_NUMBER_LENGTH             (CONNECTOR + COMS + SENSOR + \
+                                        NTC_RESISTOR + NTC_VOLT + \
+                                        NTC_VALUE_B)
 
 #define EMS                             2U
 #define YEAR_MONTH                      4U
@@ -94,14 +94,14 @@
                                          SWITCHES_IN_PARALLEL)
 #define PCB_TYPE_OFFSET                 (SWITCH_TYPE_OFFSET + SWITCH_TYPE)
 
-#define SENSOR_OFFSET                   (PCB_TYPE_OFFSET + PCB_TYPE)
+#define CONNECTOR_OFFSET                (PCB_TYPE_OFFSET + PCB_TYPE)
+#define COMS_OFFSET                     (CONNECTOR_OFFSET + CONNECTOR)
+#define SENSOR_OFFSET                   (COMS_OFFSET + COMS)
 #define NTC_RESISTOR_OFFSET             (SENSOR_OFFSET + SENSOR)
 #define NTC_VOLT_OFFSET                 (NTC_RESISTOR_OFFSET + NTC_RESISTOR)
 #define NTC_VALUE_B_OFFSET              (NTC_VOLT_OFFSET + NTC_VOLT)
-#define CONNECTOR_OFFSET                (NTC_VALUE_B_OFFSET + NTC_VALUE_B)
-#define COMS_OFFSET                     (CONNECTOR_OFFSET + CONNECTOR)
 
-#define OEM_ID_OFFSET                   (COMS_OFFSET + COMS)
+#define OEM_ID_OFFSET                   (NTC_VALUE_B_OFFSET + NTC_VALUE_B)
 #define PROJECT_ID_OFFSET               (OEM_ID_OFFSET + OEM_ID)
 #define APP_VERSION_L_OFFSET            (PROJECT_ID_OFFSET + PROJECT_ID)
 #define APP_VERSION_M_OFFSET            (APP_VERSION_L_OFFSET + APP_VERSION_L)
