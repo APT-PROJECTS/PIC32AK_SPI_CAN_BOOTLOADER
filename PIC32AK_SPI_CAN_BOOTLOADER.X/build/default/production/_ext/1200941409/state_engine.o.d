@@ -1,0 +1,53 @@
+build/default/production/_ext/1200941409/state_engine.o: \
+ ../src/software/state_engine.c ../src/config/default/definitions.h \
+ ../src/config/default/peripheral/clk/plib_clk.h \
+ ../src/config/default/device.h \
+ ../src/config/default/toolchain_specifics.h \
+ ../src/config/default/peripheral/clk/plib_clk_common.h \
+ ../src/config/default/peripheral/gpio/plib_gpio.h \
+ ../src/config/default/peripheral/intc/plib_intc.h \
+ ../src/config/default/peripheral/spi/spi_host/plib_spi1_host.h \
+ ../src/config/default/peripheral/spi/spi_host/plib_spi_host_common.h \
+ ../src/config/default/peripheral/nvm/plib_nvm.h ../src/driver.h \
+ ../src/driver/driver_can.h ../src/driver/driver_mcp2515.h \
+ ../src/driver/flash_eeprom.h ../src/middleware.h \
+ ../src/middleware/boot.h ../src/middleware/metadata.h ../src/software.h \
+ ../src/software/state_engine.h
+
+../src/config/default/definitions.h:
+
+../src/config/default/peripheral/clk/plib_clk.h:
+
+../src/config/default/device.h:
+
+../src/config/default/toolchain_specifics.h:
+
+../src/config/default/peripheral/clk/plib_clk_common.h:
+
+../src/config/default/peripheral/gpio/plib_gpio.h:
+
+../src/config/default/peripheral/intc/plib_intc.h:
+
+../src/config/default/peripheral/spi/spi_host/plib_spi1_host.h:
+
+../src/config/default/peripheral/spi/spi_host/plib_spi_host_common.h:
+
+../src/config/default/peripheral/nvm/plib_nvm.h:
+
+../src/driver.h:
+
+../src/driver/driver_can.h:
+
+../src/driver/driver_mcp2515.h:
+
+../src/driver/flash_eeprom.h:
+
+../src/middleware.h:
+
+../src/middleware/boot.h:
+
+../src/middleware/metadata.h:
+
+../src/software.h:
+
+../src/software/state_engine.h:

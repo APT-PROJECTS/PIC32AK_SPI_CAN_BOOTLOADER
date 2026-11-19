@@ -171,28 +171,23 @@ void Build_Metadata(void) {
 }
 
 void Metadata_Init(void) {
-    bool mcuIdValid = true;
+    bool mcuIdNeedsDefault;
     bool firmwareIdValid = true;
     bool metadataChanged = false;
-    bool allZero;
-    bool allFF;
-    bool allStars = true;
+    bool allZero = true;
+    bool allFF = true;
+    bool allPrintable = true;
     size_t i;
 
-    /* Step 1: Read PIC ID. */
     Get_PIC_ID();
 
-    /* Step 2: Read stored metadata from the EEPROM buffer. */
     __builtin_memcpy(metadata,
             &eepromBuffer[EEPROM_METADATA_OFFSET],
             METADATA_LENGTH);
 
     metadata[METADATA_LENGTH] = '\0';
 
-    /* Step 3: Validate stored MCU ID: all 0x00, 0xFF, or '*' is invalid. */
-    allZero = true;
-    allFF = true;
-
+    /* An all-star MCU ID is a valid "not provisioned" placeholder. */
     for (i = 0U; i < MCU_ID_LENGTH; i++) {
         uint8_t value = (uint8_t) metadata[MCU_ID_OFFSET + i];
 
@@ -204,28 +199,23 @@ void Metadata_Init(void) {
             allFF = false;
         }
 
-        if (value != (uint8_t) '*') {
-            allStars = false;
+        if ((value < 0x20U) || (value > 0x7EU)) {
+            allPrintable = false;
         }
     }
 
-    if (allZero || allFF || allStars) {
-        mcuIdValid = false;
-    }
+    mcuIdNeedsDefault = allZero || allFF || !allPrintable;
 
-    if (mcuIdValid) {
-        /* Preserve the complete stored MCU ID. */
+    if (mcuIdNeedsDefault) {
+        __builtin_memset(mcuId, '*', MCU_ID_LENGTH);
+        mcuId[MCU_ID_LENGTH] = '\0';
+    } else {
         __builtin_memcpy(mcuId,
                 &metadata[MCU_ID_OFFSET],
                 MCU_ID_LENGTH);
-
-        mcuId[MCU_ID_LENGTH] = '\0';
-    } else {
-        __builtin_memset(mcuId, '*', MCU_ID_LENGTH);
         mcuId[MCU_ID_LENGTH] = '\0';
     }
 
-    /* Step 4: Validate stored Firmware ID: all 0x00 or all 0xFF is invalid. */
     allZero = true;
     allFF = true;
 
@@ -253,8 +243,6 @@ void Metadata_Init(void) {
         Build_Metadata();
         metadataChanged = true;
     } else {
-        /* Restore stored fields. Do not restore bootloader version fields. */
-
         __builtin_memcpy(brandName, &metadata[BRAND_NAME_OFFSET], BRAND_NAME);
         __builtin_memcpy(phases, &metadata[PHASES_OFFSET], PHASES);
         __builtin_memcpy(switchesInParallel,
@@ -263,7 +251,8 @@ void Metadata_Init(void) {
         __builtin_memcpy(pcbType, &metadata[PCB_TYPE_OFFSET], PCB_TYPE);
 
         __builtin_memcpy(sensor, &metadata[SENSOR_OFFSET], SENSOR);
-        __builtin_memcpy(ntcResistor, &metadata[NTC_RESISTOR_OFFSET], NTC_RESISTOR);
+        __builtin_memcpy(ntcResistor,
+                &metadata[NTC_RESISTOR_OFFSET], NTC_RESISTOR);
         __builtin_memcpy(ntcVolt, &metadata[NTC_VOLT_OFFSET], NTC_VOLT);
         __builtin_memcpy(ntcValueB, &metadata[NTC_VALUE_B_OFFSET], NTC_VALUE_B);
         __builtin_memcpy(connector, &metadata[CONNECTOR_OFFSET], CONNECTOR);
@@ -271,18 +260,17 @@ void Metadata_Init(void) {
 
         __builtin_memcpy(oemId, &metadata[OEM_ID_OFFSET], OEM_ID);
         __builtin_memcpy(projectId, &metadata[PROJECT_ID_OFFSET], PROJECT_ID);
-        __builtin_memcpy(appVersionL, &metadata[APP_VERSION_L_OFFSET],
-                APP_VERSION_L);
-        __builtin_memcpy(appVersionM, &metadata[APP_VERSION_M_OFFSET],
-                APP_VERSION_M);
-        __builtin_memcpy(appVersionR, &metadata[APP_VERSION_R_OFFSET],
-                APP_VERSION_R);
+        __builtin_memcpy(appVersionL,
+                &metadata[APP_VERSION_L_OFFSET], APP_VERSION_L);
+        __builtin_memcpy(appVersionM,
+                &metadata[APP_VERSION_M_OFFSET], APP_VERSION_M);
+        __builtin_memcpy(appVersionR,
+                &metadata[APP_VERSION_R_OFFSET], APP_VERSION_R);
         __builtin_memcpy(appSize, &metadata[APP_SIZE_OFFSET], APP_SIZE);
         appSize[APP_SIZE] = '\0';
 
-        /* Keep bootVersionL, bootVersionM, and bootVersionR from bootloader. */
-        __builtin_memcpy(stayInBootFlag, &metadata[STAY_IN_BOOT_FLAG_OFFSET],
-                STAY_IN_BOOT_FLAG);
+        __builtin_memcpy(stayInBootFlag,
+                &metadata[STAY_IN_BOOT_FLAG_OFFSET], STAY_IN_BOOT_FLAG);
         stayInBootFlag[STAY_IN_BOOT_FLAG] = '\0';
 
         Get_Part_Number();
@@ -290,8 +278,10 @@ void Metadata_Init(void) {
         Get_Software_ID();
         Get_Firmware_ID();
 
-        if (__builtin_memcmp(firmwareId, &metadata[FIRMWARE_ID_OFFSET],
-                FIRMWARE_ID_LENGTH) != 0) {
+        if (mcuIdNeedsDefault ||
+                (__builtin_memcmp(firmwareId,
+                &metadata[FIRMWARE_ID_OFFSET],
+                FIRMWARE_ID_LENGTH) != 0)) {
             Build_Metadata();
             metadataChanged = true;
         }

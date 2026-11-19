@@ -38,7 +38,7 @@ typedef void (*APP_ENTRY_FUNC)(void);
 
 void Boot_Init(void) {
     uint32_t ctr = 0U;
-    
+
     if (strcmp(stayInBootFlag, "1") == 0) {
         strcpy(stayInBootFlag, "0");
 
@@ -157,7 +157,8 @@ void Boot_Metadata_Handler(void) {
     operation = BOOT_CAN_CMD_3_GET_OPERATION(canRxBuffer[3]);
     chunkNumber = canRxBuffer[1];
     /* Reserve the final metadata byte for internal use. */
-    chunkCount = (METADATA_LENGTH - 1U) / CAN_FRAME_DATA_SIZE;
+    chunkCount = ((METADATA_LENGTH - 1U) + CAN_FRAME_DATA_SIZE - 1U) /
+            CAN_FRAME_DATA_SIZE;
 
     if ((chunkNumber == 0U) ||
             (chunkNumber > chunkCount)) {
@@ -687,14 +688,15 @@ void Boot_APP_CRC_Handler(void) {
 
             txBuf[3] = BOOT_CAN_CMD_3_SET_OPERATION(operation);
 
-            /*
-             * During firmware update, use the current firmware size.
-             * Otherwise, use the previously stored application size.
-             */
-            crcLength = (firmwareUpdateActive &&
-                    (firmwareExpectedSize != 0U))
+            uint32_t storedAppSize =
+                    ((uint32_t) (uint8_t) appSize[0] << 24) |
+                    ((uint32_t) (uint8_t) appSize[1] << 16) |
+                    ((uint32_t) (uint8_t) appSize[2] << 8) |
+                    ((uint32_t) (uint8_t) appSize[3]);
+
+            crcLength = (firmwareUpdateActive && (firmwareExpectedSize != 0U))
                     ? firmwareExpectedSize
-                    : (uint32_t) strtoul(appSize, NULL, 10);
+                    : storedAppSize;
 
             if (firmwareUpdateActive && firmwareUpdateFailed) {
                 txBuf[3] = BOOT_CAN_CMD_3_SET_STATUS
