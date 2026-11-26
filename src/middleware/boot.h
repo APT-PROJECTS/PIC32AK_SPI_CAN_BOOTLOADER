@@ -92,6 +92,7 @@
 #define BOOT_CAN_CMD_0_APP_CHUNK          0x07U
 
 #define BOOT_CAN_CMD_0_APP_CRC            0x08U
+
 #define BOOT_CAN_CMD_0_STAY_IN_BOOT       0x09U
 
 

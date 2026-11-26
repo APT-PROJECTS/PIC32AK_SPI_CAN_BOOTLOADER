@@ -20,6 +20,14 @@
 #define BOOT_CAN_CMD_3_GET_STATUS(value) \
         ((uint8_t)(((value) >> 3U) & 0x03U))
 
+#define MCU_ID_WRITE_CHUNK_COUNT \
+    ((MCU_ID_LENGTH + CAN_FRAME_DATA_SIZE - 1U) / CAN_FRAME_DATA_SIZE)
+
+static uint8_t mcuIdWriteBuffer[MCU_ID_LENGTH];
+static uint8_t mcuIdWriteExpectedChunk = 1U;
+static uint8_t mcuIdWriteLastAcceptedChunk = 0U;
+static bool mcuIdWriteActive = false;
+
 static uint8_t flashBuffer[FLASH_CHUNK_SIZE];
 static uint32_t flashBufferIndex = 0;
 static uint32_t flashWriteAddress = APPLICATION_START_ADDRESS;
@@ -140,15 +148,17 @@ void Boot_PIC_ID_Handler(void) {
     }
 }
 
-/* Read one four-byte metadata chunk, using the same protocol as tuner CAN. */
 void Boot_Metadata_Handler(void) {
     uint8_t txBuf[8] = {0U};
     uint8_t operation;
     uint8_t chunkNumber;
-    uint8_t chunkCount;
+    uint8_t readChunkCount;
+    uint8_t writeStatus;
     uint16_t metadataOffset;
     uint16_t i;
+    uint16_t copyLength;
     bool metadataEmpty = true;
+    bool mcuIdValid = true;
 
     if (canRxBuffer[0] != BOOT_CAN_CMD_0_METADATA) {
         return;
@@ -156,22 +166,21 @@ void Boot_Metadata_Handler(void) {
 
     operation = BOOT_CAN_CMD_3_GET_OPERATION(canRxBuffer[3]);
     chunkNumber = canRxBuffer[1];
-    /* Reserve the final metadata byte for internal use. */
-    chunkCount = ((METADATA_LENGTH - 1U) + CAN_FRAME_DATA_SIZE - 1U) /
-            CAN_FRAME_DATA_SIZE;
 
-    if ((chunkNumber == 0U) ||
-            (chunkNumber > chunkCount)) {
-        return;
-    }
+    readChunkCount = (uint8_t) (
+            ((METADATA_LENGTH - 1U) + CAN_FRAME_DATA_SIZE - 1U) /
+            CAN_FRAME_DATA_SIZE);
 
-    metadataOffset = (uint16_t) (chunkNumber - 1U) * CAN_FRAME_DATA_SIZE;
     txBuf[0] = BOOT_CAN_CMD_0_METADATA;
     txBuf[1] = chunkNumber;
     txBuf[2] = 0x00U;
 
     switch (operation) {
         case BOOT_CAN_CMD_3_OPERATION_READ:
+            if ((chunkNumber == 0U) || (chunkNumber > readChunkCount)) {
+                return;
+            }
+
             for (i = 0U; i < (METADATA_LENGTH - 1U); i++) {
                 if ((uint8_t) metadata[i] != 0x00U) {
                     metadataEmpty = false;
@@ -179,24 +188,129 @@ void Boot_Metadata_Handler(void) {
                 }
             }
 
-            txBuf[3] = BOOT_CAN_CMD_3_SET_OPERATION(operation);
-            txBuf[3] = BOOT_CAN_CMD_3_SET_STATUS
-                    (metadataEmpty ? BOOT_CAN_CMD_3_STATUS_FAIL :
-                    BOOT_CAN_CMD_3_STATUS_SUCCESS);
+            txBuf[3] = (uint8_t) (
+                    BOOT_CAN_CMD_3_SET_OPERATION(operation) |
+                    BOOT_CAN_CMD_3_SET_STATUS(
+                    metadataEmpty ? BOOT_CAN_CMD_3_STATUS_FAIL :
+                    BOOT_CAN_CMD_3_STATUS_SUCCESS));
 
             if (!metadataEmpty) {
+                metadataOffset = (uint16_t) (chunkNumber - 1U) *
+                        CAN_FRAME_DATA_SIZE;
+
                 for (i = 0U; (i < CAN_FRAME_DATA_SIZE) &&
-                        ((metadataOffset + i) < (METADATA_LENGTH - 1U)); i++) {
+                        ((metadataOffset + i) <
+                        (METADATA_LENGTH - 1U)); i++) {
                     txBuf[4U + i] = (uint8_t) metadata[metadataOffset + i];
                 }
             }
+
+            CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof (txBuf));
+            break;
+
+        case BOOT_CAN_CMD_3_OPERATION_WRITE:
+            writeStatus = BOOT_CAN_CMD_3_STATUS_FAIL;
+
+            if ((chunkNumber == 0U) ||
+                    (chunkNumber > MCU_ID_WRITE_CHUNK_COUNT)) {
+                goto metadata_write_reply;
+            }
+
+            /* Chunk 1 starts or restarts an MCU-ID write transaction. */
+            if (chunkNumber == 1U) {
+                __builtin_memset(mcuIdWriteBuffer, 0,
+                        sizeof (mcuIdWriteBuffer));
+
+                mcuIdWriteExpectedChunk = 1U;
+                mcuIdWriteLastAcceptedChunk = 0U;
+                mcuIdWriteActive = true;
+            }
+
+            /* Re-ACK a repeated accepted chunk. */
+            if ((chunkNumber != 1U) &&
+                    (chunkNumber == mcuIdWriteLastAcceptedChunk)) {
+                writeStatus = BOOT_CAN_CMD_3_STATUS_SUCCESS;
+                goto metadata_write_reply;
+            }
+
+            if (!mcuIdWriteActive ||
+                    (chunkNumber != mcuIdWriteExpectedChunk)) {
+                goto metadata_write_reply;
+            }
+
+            metadataOffset = (uint16_t) (chunkNumber - 1U) *
+                    CAN_FRAME_DATA_SIZE;
+
+            copyLength = MCU_ID_LENGTH - metadataOffset;
+            if (copyLength > CAN_FRAME_DATA_SIZE) {
+                copyLength = CAN_FRAME_DATA_SIZE;
+            }
+
+            __builtin_memcpy(&mcuIdWriteBuffer[metadataOffset],
+                    &canRxBuffer[4], copyLength);
+
+            /* Chunks 1?8: buffer and acknowledge. */
+            if (chunkNumber < MCU_ID_WRITE_CHUNK_COUNT) {
+                mcuIdWriteLastAcceptedChunk = chunkNumber;
+                mcuIdWriteExpectedChunk++;
+
+                writeStatus = BOOT_CAN_CMD_3_STATUS_SUCCESS;
+                goto metadata_write_reply;
+            }
+
+            /* Chunk 9 received: validate all 34 MCU-ID bytes. */
+            for (i = 0U; i < MCU_ID_LENGTH; i++) {
+                uint8_t value = mcuIdWriteBuffer[i];
+
+                if ((value < 0x20U) || (value > 0x7EU)) {
+                    mcuIdValid = false;
+                    break;
+                }
+            }
+
+            if (!mcuIdValid) {
+                mcuIdWriteActive = false;
+                goto metadata_write_reply;
+            }
+
+            /*
+             * Update only MCU ID. Firmware ID and stayInBootFlag stay intact.
+             */
+            __builtin_memcpy(mcuId, mcuIdWriteBuffer, MCU_ID_LENGTH);
+            mcuId[MCU_ID_LENGTH] = '\0';
+
+            __builtin_memcpy(&metadata[MCU_ID_OFFSET],
+                    mcuIdWriteBuffer, MCU_ID_LENGTH);
+
+            __builtin_memset(&eepromBuffer[EEPROM_METADATA_OFFSET], 0xFF,
+                    EEPROM_METADATA_SIZE);
+
+            __builtin_memcpy(&eepromBuffer[EEPROM_METADATA_OFFSET],
+                    metadata, METADATA_LENGTH);
+
+            if (Flash_EEPROM_Write_Page(eepromBuffer,
+                    EEPROM_DATA_SIZE) == FLASH_EEPROM_OK) {
+                mcuIdWriteLastAcceptedChunk = chunkNumber;
+                mcuIdWriteExpectedChunk++;
+                mcuIdWriteActive = false;
+
+                writeStatus = BOOT_CAN_CMD_3_STATUS_SUCCESS;
+            } else {
+                mcuIdWriteActive = false;
+            }
+
+metadata_write_reply:
+            txBuf[3] = (uint8_t) (
+                    BOOT_CAN_CMD_3_SET_OPERATION(
+                    BOOT_CAN_CMD_3_OPERATION_WRITE) |
+                    BOOT_CAN_CMD_3_SET_STATUS(writeStatus));
+
+            CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof (txBuf));
             break;
 
         default:
             return;
     }
-
-    CANbus_write(BOOT_CAN_ID_CLIENT, txBuf, sizeof (txBuf));
 }
 
 void Boot_Status_Handler(void) {

@@ -129,6 +129,8 @@ extern uint32_t devid;
 extern char appSize[APP_SIZE + 1U];
 extern char stayInBootFlag[STAY_IN_BOOT_FLAG + 1U];
 
+extern char mcuId[MCU_ID_LENGTH + 1U];
+
 extern char metadata[METADATA_LENGTH + 1U];  
 
 
